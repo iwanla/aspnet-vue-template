@@ -21,6 +21,11 @@ public sealed class LoginEndpoint : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Users)
+        .Produces<AccessTokensResponse>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status404NotFound)
+        .ProducesProblem(StatusCodes.Status500InternalServerError)
+        .Produces(StatusCodes.Status429TooManyRequests)
         .RequireRateLimiting(RateLimitingPolicies.Authentication);
     }
 }

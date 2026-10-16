@@ -99,6 +99,10 @@ docker compose up --build
 # app http://localhost:5000, seq http://localhost:8081
 ```
 
+> Plain `dotnet publish` ships whatever is in `wwwroot/` — it does not build the
+> client. Always run `bun run build` first (Docker builds the client itself
+> inside the image, so `docker compose up --build` needs no manual step).
+
 ## Differences from upstream
 
 - Namespace `Web.Api` → `AspNetVue.Server`; test assemblies `AspNetVue.Server.{Unit,Integration,Architecture}Tests`.

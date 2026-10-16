@@ -66,6 +66,8 @@
   </ItemGroup>
 
   <!-- Prod: `bun run build` in the client outputs straight into wwwroot/ (see vite.config.ts outDir).
-       wwwroot/ is auto-published as static files. No custom DistFiles needed. -->
+       wwwroot/ is auto-published as static files. No custom DistFiles needed.
+       NOTE: `dotnet publish` does NOT build the client — run `bun run build` first
+       (the Dockerfile does this itself in the client-build stage). -->
 
 </Project>

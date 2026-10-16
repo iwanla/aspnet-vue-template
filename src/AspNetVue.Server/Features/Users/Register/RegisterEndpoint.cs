@@ -25,6 +25,11 @@ public sealed class RegisterEndpoint : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Users)
+        .Produces<Guid>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status409Conflict)
+        .ProducesProblem(StatusCodes.Status500InternalServerError)
+        .Produces(StatusCodes.Status429TooManyRequests)
         .RequireRateLimiting(RateLimitingPolicies.Authentication);
     }
 }
