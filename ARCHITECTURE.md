@@ -64,16 +64,17 @@ shape: `Command/Query record` + FluentValidation `Validator` +
 ## 4. SPA hosting (adaptation outside the 1:1 port)
 
 - Dev: `dotnet run :5000` → `SpaProxyLaunchManager (bun run dev)` → Vite `:5173`
-  (HMR); Vite fetches to `^/(todos|users|health)(/.*)?$` → Vite proxy → `:5000`
+  (HMR); Vite fetches to `^/api(/.*)?$` → Vite proxy → `:5000`
   (no CORS). No manual `UseSpa` (automatic via `SpaHostingStartup` +
   `spa.proxy.json` from the csproj: `SpaRoot`, `SpaProxyServerUrl`, `SpaProxyLaunchCommand`).
 - Prod: `bun run build` in the client → straight into `../AspNetVue.Server/wwwroot/`
   (`vite.config.ts outDir`) → `dotnet publish` single artifact;
   `UseStaticFiles` + `MapFallbackToFile(index.html)` (Vue Router history mode).
 - `wwwroot/` is a build artifact (gitignored), regenerated via the client build.
-- Client route `/status` (not `/health`, which collides with server `GET /health`).
-- API routes have no `/api` prefix (as upstream: `todos`, `users/*`, `health`).
-- Unknown `todos/{**}` / `users/{**}` → `404 JSON` before the fallback,
+- Client route `/status` (a page; the server health endpoint is `/api/health`).
+- All API routes live under the `/api` prefix (unlike upstream):
+  `api/todos*`, `api/users/*`, `api/health`, via `MapEndpoints(app.MapGroup("api"))`.
+- Unknown `api/{**}` → `404 JSON` before the fallback,
   never swallowed by `index.html`.
 
 ## 5. Client (`src/AspNetVue.Client/`)
@@ -117,7 +118,8 @@ Compose: `app` + `postgres:17` (DB `aspnetvue`) + `seq`; the app healthcheck use
 5. `Testcontainers.PostgreSql` 4.12.0 → 4.16.0 (4.12 fails restore with NU1903 on SSH.NET
    + `TreatWarningsAsErrors`; upstream fails the same way).
 6. Template packaging (§6 + `AspNetVue.Template.csproj`).
-7. NOT ported (not functionality): `.claude/skills`, `.github/workflows`,
+7. `/api` prefix on all API routes (§4; upstream has none).
+8. NOT ported (not functionality): `.claude/skills`, `.github/workflows`,
    `docker-compose.dcproj`, .NET 8/9 Dockerfiles, upstream slnx, upstream README.
 
 ## 9. Tests & rules

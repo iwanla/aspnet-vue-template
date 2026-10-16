@@ -5,7 +5,7 @@
     <p v-if="loading">Loading…</p>
     <p v-else-if="error" style="color: red">{{ error }}</p>
     <pre v-else>{{ result }}</pre>
-    <p><small>GET <code>/health</code> (AspNetCore HealthChecks + Npgsql).</small></p>
+    <p><small>GET <code>/api/health</code> (AspNetCore HealthChecks + Npgsql).</small></p>
   </section>
 </template>
 
@@ -21,7 +21,7 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    result.value = await getJson('/health')
+    result.value = await getJson('/api/health')
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e)
   } finally {

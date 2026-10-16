@@ -12,9 +12,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    # healthcheck memakai /health (AspNetCore HealthChecks + Npgsql)
+    # healthcheck uses /api/health (AspNetCore HealthChecks + Npgsql)
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3

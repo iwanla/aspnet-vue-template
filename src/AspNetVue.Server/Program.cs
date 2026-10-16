@@ -27,7 +27,7 @@ builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());
 
 WebApplication app = builder.Build();
 
-app.MapEndpoints();
+app.MapEndpoints(app.MapGroup("api"));
 
 if (app.Environment.IsDevelopment())
 {
@@ -36,7 +36,7 @@ if (app.Environment.IsDevelopment())
     // app.ApplyMigrations();
 }
 
-app.MapHealthChecks("health", new HealthCheckOptions
+app.MapHealthChecks("api/health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
@@ -62,10 +62,9 @@ app.UseRateLimiter();
 // REMARK: If you want to use Controllers, you'll need this.
 app.MapControllers();
 
-// SPA hosting: API yang tidak dikenal -> 404 JSON (jangan tertelan index.html).
-// Rute API vertical-slice tidak memakai prefix /api (todos, users, health).
-app.Map("todos/{**catch-all}", () => Results.NotFound(new { error = "Not Found" }));
-app.Map("users/{**catch-all}", () => Results.NotFound(new { error = "Not Found" }));
+// SPA hosting: unknown API routes -> 404 JSON (never swallowed by index.html).
+// All API routes live under the /api prefix (see MapGroup above).
+app.Map("api/{**catch-all}", () => Results.NotFound(new { error = "Not Found" }));
 
 // Fallback SPA: semua non-API yang tidak match file statis -> index.html (Vue Router history mode).
 app.MapFallbackToFile("index.html");

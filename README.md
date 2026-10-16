@@ -63,7 +63,7 @@ cd ../AspNetVue.Server && dotnet run    # auto-runs `bun run dev` via SpaProxy
 ```
 
 - API: `http://localhost:5000` · Scalar docs: `http://localhost:5000/scalar/v1`
-- Vite: `http://localhost:5173` (proxies `/todos|/users|/health` → `:5000`)
+- Vite: `http://localhost:5173` (proxies `/api/*` → `:5000`)
 - Seq: `http://localhost:8081` (logs from `appsettings.Development.json`)
 
 > `appsettings.Development.json` points at `Host=postgres` (the compose service name).
@@ -73,16 +73,16 @@ cd ../AspNetVue.Server && dotnet run    # auto-runs `bun run dev` via SpaProxy
 
 | Method | Route | Auth |
 |---|---|---|
-| POST | `users/register` | anon, rate-limit `authentication` |
-| POST | `users/login` | anon, rate-limit `authentication` → `{ accessToken, refreshToken }` |
-| POST | `users/refresh-token` | anon, rate-limit `authentication` |
-| GET | `users/{userId}` | permission `users:access` |
-| POST / GET / GET{id} / PUT / DELETE / PUT complete / POST copy | `todos…` | JWT |
-| GET | `health` | anon (Npgsql check) |
+| POST | `api/users/register` | anon, rate-limit `authentication` |
+| POST | `api/users/login` | anon, rate-limit `authentication` → `{ accessToken, refreshToken }` |
+| POST | `api/users/refresh-token` | anon, rate-limit `authentication` |
+| GET | `api/users/{userId}` | permission `users:access` |
+| POST / GET / GET{id} / PUT / DELETE / PUT complete / POST copy | `api/todos…` | JWT |
+| GET | `api/health` | anon (Npgsql check) |
 | GET | `/scalar/v1`, `/openapi/v1.json` | dev only |
 
 Non-API routes matching no static file → `index.html` (Vue Router history mode);
-unknown `todos/{**}` / `users/{**}` → `404 JSON`.
+unknown `api/{**}` → `404 JSON`.
 
 ## Tests
 
@@ -107,5 +107,6 @@ docker compose up --build
 
 - Namespace `Web.Api` → `AspNetVue.Server`; test assemblies `AspNetVue.Server.{Unit,Integration,Architecture}Tests`.
 - Added: SpaProxy (`SpaRoot`, `SpaProxyServerUrl`), `UseStaticFiles` + guards + `MapFallbackToFile`.
+- All API routes under the `/api` prefix (upstream has none): `MapEndpoints(app.MapGroup("api"))` + `api/health`; Vite proxies `^/api(/.*)?$`; client fetches `/api/health`.
 - `Testcontainers.PostgreSql` 4.12.0 → 4.16.0 (4.12's transitive `SSH.NET` hits NU1903 very-high; upstream fails to build the same way right now).
 - Compose DB `clean-architecture` → `aspnetvue`.

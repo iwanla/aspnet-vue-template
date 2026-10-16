@@ -16,8 +16,8 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     proxy: {
-      // Rute API server (tanpa prefix /api) diproxy ke ASP.NET Core agar tanpa CORS saat dev.
-      '^/(todos|users|health)(/.*)?$': {
+      // Server API routes (under the /api prefix) are proxied to ASP.NET Core to avoid CORS in dev.
+      '^/api(/.*)?$': {
         target: 'http://localhost:5000',
         changeOrigin: true
       }

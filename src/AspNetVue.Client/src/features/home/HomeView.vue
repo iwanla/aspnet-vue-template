@@ -7,7 +7,7 @@
       Prod: <code>bun run build</code> then serve <code>wwwroot</code>.
     </p>
     <p>
-      <RouterLink to="/status">Check /health</RouterLink> ·
+      <RouterLink to="/status">Check /api/health</RouterLink> ·
       <a href="/scalar/v1" target="_blank" rel="noopener">Scalar API docs</a> (dev)
     </p>
   </section>
