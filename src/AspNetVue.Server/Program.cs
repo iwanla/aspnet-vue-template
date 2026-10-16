@@ -1,10 +1,12 @@
 using System.Reflection;
+using Asp.Versioning;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 using AspNetVue.Server;
 using AspNetVue.Server.Common.Endpoints;
 using AspNetVue.Server.Common.Extensions;
+using Asp.Versioning.Builder;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -27,7 +29,12 @@ builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());
 
 WebApplication app = builder.Build();
 
-app.MapEndpoints(app.MapGroup("api"));
+ApiVersionSet versionSet = app.NewApiVersionSet()
+    .HasApiVersion(new ApiVersion(1, 0))
+    .ReportApiVersions()
+    .Build();
+
+app.MapEndpoints(app.MapGroup("api/v{version:apiVersion}").WithApiVersionSet(versionSet));
 
 if (app.Environment.IsDevelopment())
 {

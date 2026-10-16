@@ -21,6 +21,7 @@ public sealed class RefreshEndpoint : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Users)
+        .MapToApiVersion(1)
         .Produces<AccessTokensResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status500InternalServerError)

@@ -39,7 +39,7 @@ public sealed class UsersTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
         // Act
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
-            "api/users/login",
+            "api/v1/users/login",
             new { email, password = "WrongPassword1" });
 
         // Assert
@@ -56,7 +56,7 @@ public sealed class UsersTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
         // Act
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
-            "api/users/refresh-token",
+            "api/v1/users/refresh-token",
             new { refreshToken = tokens.RefreshToken });
 
         // Assert
@@ -71,7 +71,7 @@ public sealed class UsersTests(IntegrationTestWebAppFactory factory) : BaseInteg
     {
         // Act
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
-            "api/users/refresh-token",
+            "api/v1/users/refresh-token",
             new { refreshToken = "this-token-does-not-exist" });
 
         // Assert

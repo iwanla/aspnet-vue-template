@@ -73,16 +73,23 @@ cd ../AspNetVue.Server && dotnet run    # auto-runs `bun run dev` via SpaProxy
 
 | Method | Route | Auth |
 |---|---|---|
-| POST | `api/users/register` | anon, rate-limit `authentication` |
-| POST | `api/users/login` | anon, rate-limit `authentication` → `{ accessToken, refreshToken }` |
-| POST | `api/users/refresh-token` | anon, rate-limit `authentication` |
-| GET | `api/users/{userId}` | permission `users:access` |
-| POST / GET / GET{id} / PUT / DELETE / PUT complete / POST copy | `api/todos…` | JWT |
+| POST | `api/v1/users/register` | anon, rate-limit `authentication` |
+| POST | `api/v1/users/login` | anon, rate-limit `authentication` → `{ accessToken, refreshToken }` |
+| POST | `api/v1/users/refresh-token` | anon, rate-limit `authentication` |
+| GET | `api/v1/users/{userId}` | permission `users:access` |
+| POST / GET / GET{id} / PUT / DELETE / PUT complete / POST copy | `api/v1/todos…` | JWT |
 | GET | `api/health` | anon (Npgsql check) |
 | GET | `/scalar/v1`, `/openapi/v1.json` | dev only |
 
 Non-API routes matching no static file → `index.html` (Vue Router history mode);
 unknown `api/{**}` → `404 JSON`.
+
+Business endpoints use URL-segment API versioning (`Asp.Versioning`): `/api/v1/...`.
+The version segment is required; `/api/todos` and unsupported versions return 404.
+Health remains unversioned at `/api/health`. OpenAPI substitutes `v1` in paths.
+To add v2, declare it on the version set in `Program.cs`, map the relevant
+endpoints with `.MapToApiVersion(2)`, and register a `v2` OpenAPI document.
+Existing endpoints remain v1 unless explicitly mapped to another version.
 
 ## Tests
 
@@ -107,6 +114,6 @@ docker compose up --build
 
 - Namespace `Web.Api` → `AspNetVue.Server`; test assemblies `AspNetVue.Server.{Unit,Integration,Architecture}Tests`.
 - Added: SpaProxy (`SpaRoot`, `SpaProxyServerUrl`), `UseStaticFiles` + guards + `MapFallbackToFile`.
-- All API routes under the `/api` prefix (upstream has none): `MapEndpoints(app.MapGroup("api"))` + `api/health`; Vite proxies `^/api(/.*)?$`; client fetches `/api/health`.
+- All API routes under the `/api` prefix (upstream has none): versioned business group `api/v{version:apiVersion}` + unversioned `api/health`; Vite proxies `/api`; client fetches `/api/health`.
 - `Testcontainers.PostgreSql` 4.12.0 → 4.16.0 (4.12's transitive `SSH.NET` hits NU1903 very-high; upstream fails to build the same way right now).
 - Compose DB `clean-architecture` → `aspnetvue`.

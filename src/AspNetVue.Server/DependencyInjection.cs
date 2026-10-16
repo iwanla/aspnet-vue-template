@@ -1,4 +1,5 @@
 using System.Text;
+using Asp.Versioning;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -55,6 +56,20 @@ public static class DependencyInjection
 
         services.AddExceptionHandler<GlobalExceptionHandler>();
         services.AddProblemDetails();
+
+        // URL-segment versioning: /api/v1/... (health stays version-neutral).
+        // New breaking endpoints opt into v2 via .MapToApiVersion(2); v1 stays.
+        services.AddApiVersioning(options =>
+        {
+            options.DefaultApiVersion = new ApiVersion(1, 0);
+            options.ApiVersionReader = new UrlSegmentApiVersionReader();
+            options.ReportApiVersions = true;
+        })
+        .AddApiExplorer(options =>
+        {
+            options.GroupNameFormat = "'v'V";
+            options.SubstituteApiVersionInUrl = true;
+        });
 
         return services;
     }

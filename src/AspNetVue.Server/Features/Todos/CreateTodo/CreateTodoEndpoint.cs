@@ -28,6 +28,7 @@ public sealed class CreateTodoEndpoint : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Todos)
+        .MapToApiVersion(1)
         .Produces<Guid>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status404NotFound)

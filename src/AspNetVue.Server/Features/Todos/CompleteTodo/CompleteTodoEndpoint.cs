@@ -21,6 +21,7 @@ public sealed class CompleteTodoEndpoint : IEndpoint
             return result.Match(Results.NoContent, CustomResults.Problem);
         })
         .WithTags(Tags.Todos)
+        .MapToApiVersion(1)
         .Produces(StatusCodes.Status204NoContent)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status404NotFound)

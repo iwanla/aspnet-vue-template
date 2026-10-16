@@ -32,6 +32,7 @@ public sealed class GetTodosEndpoint : IEndpoint
             return result.Match(Results.Ok, CustomResults.Problem);
         })
         .WithTags(Tags.Todos)
+        .MapToApiVersion(1)
         .Produces<PagedList<GetTodosResponse>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status404NotFound)

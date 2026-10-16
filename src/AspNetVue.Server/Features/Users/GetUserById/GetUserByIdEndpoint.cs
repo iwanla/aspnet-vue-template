@@ -22,6 +22,7 @@ public sealed class GetUserByIdEndpoint : IEndpoint
         })
         .HasPermission(Permissions.UsersAccess)
         .WithTags(Tags.Users)
+        .MapToApiVersion(1)
         .Produces<GetUserByIdResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status500InternalServerError)

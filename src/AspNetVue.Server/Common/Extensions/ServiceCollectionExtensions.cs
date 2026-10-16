@@ -6,7 +6,7 @@ internal static class ServiceCollectionExtensions
 {
     internal static IServiceCollection AddOpenApiWithAuth(this IServiceCollection services)
     {
-        services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
+        services.AddOpenApi("v1", options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
 
         return services;
     }

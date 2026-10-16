@@ -11,7 +11,7 @@ public sealed class TodosTests(IntegrationTestWebAppFactory factory) : BaseInteg
     public async Task GetTodo_Should_ReturnUnauthorized_WhenTokenIsMissing()
     {
         // Act
-        HttpResponseMessage response = await HttpClient.GetAsync($"api/todos/{Guid.NewGuid()}");
+        HttpResponseMessage response = await HttpClient.GetAsync($"api/v1/todos/{Guid.NewGuid()}");
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
@@ -33,14 +33,14 @@ public sealed class TodosTests(IntegrationTestWebAppFactory factory) : BaseInteg
         };
 
         // Act
-        HttpResponseMessage createResponse = await HttpClient.PostAsJsonAsync("api/todos", createRequest);
+        HttpResponseMessage createResponse = await HttpClient.PostAsJsonAsync("api/v1/todos", createRequest);
 
         // Assert
         createResponse.EnsureSuccessStatusCode();
         Guid todoId = await createResponse.Content.ReadFromJsonAsync<Guid>();
         todoId.ShouldNotBe(Guid.Empty);
 
-        HttpResponseMessage getResponse = await HttpClient.GetAsync($"api/todos/{todoId}");
+        HttpResponseMessage getResponse = await HttpClient.GetAsync($"api/v1/todos/{todoId}");
         getResponse.EnsureSuccessStatusCode();
 
         TodoDto? todo = await getResponse.Content.ReadFromJsonAsync<TodoDto>();
@@ -64,17 +64,17 @@ public sealed class TodosTests(IntegrationTestWebAppFactory factory) : BaseInteg
             labels = Array.Empty<string>(),
             priority = 1
         };
-        HttpResponseMessage createResponse = await HttpClient.PostAsJsonAsync("api/todos", createRequest);
+        HttpResponseMessage createResponse = await HttpClient.PostAsJsonAsync("api/v1/todos", createRequest);
         createResponse.EnsureSuccessStatusCode();
         Guid todoId = await createResponse.Content.ReadFromJsonAsync<Guid>();
 
         // Act
-        HttpResponseMessage completeResponse = await HttpClient.PutAsync($"api/todos/{todoId}/complete", null);
+        HttpResponseMessage completeResponse = await HttpClient.PutAsync($"api/v1/todos/{todoId}/complete", null);
 
         // Assert
         completeResponse.EnsureSuccessStatusCode();
 
-        HttpResponseMessage getResponse = await HttpClient.GetAsync($"api/todos/{todoId}");
+        HttpResponseMessage getResponse = await HttpClient.GetAsync($"api/v1/todos/{todoId}");
         getResponse.EnsureSuccessStatusCode();
         TodoDto? todo = await getResponse.Content.ReadFromJsonAsync<TodoDto>();
         todo!.IsCompleted.ShouldBeTrue();
@@ -123,7 +123,7 @@ public sealed class TodosTests(IntegrationTestWebAppFactory factory) : BaseInteg
         await PostTodoAsync(createRequest, Guid.NewGuid().ToString());
 
         // Act
-        HttpResponseMessage response = await HttpClient.GetAsync($"api/todos?userId={userId}&page=1&pageSize=1");
+        HttpResponseMessage response = await HttpClient.GetAsync($"api/v1/todos?userId={userId}&page=1&pageSize=1");
 
         // Assert
         response.EnsureSuccessStatusCode();
@@ -143,7 +143,7 @@ public sealed class TodosTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
     private async Task<HttpResponseMessage> PostTodoAsync(object request, string idempotencyKey)
     {
-        using var message = new HttpRequestMessage(HttpMethod.Post, "api/todos")
+        using var message = new HttpRequestMessage(HttpMethod.Post, "api/v1/todos")
         {
             Content = JsonContent.Create(request)
         };

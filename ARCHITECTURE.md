@@ -64,7 +64,7 @@ shape: `Command/Query record` + FluentValidation `Validator` +
 ## 4. SPA hosting (adaptation outside the 1:1 port)
 
 - Dev: `dotnet run :5000` → `SpaProxyLaunchManager (bun run dev)` → Vite `:5173`
-  (HMR); Vite fetches to `^/api(/.*)?$` → Vite proxy → `:5000`
+  (HMR); Vite fetches to `/api` → Vite proxy → `:5000`
   (no CORS). No manual `UseSpa` (automatic via `SpaHostingStartup` +
   `spa.proxy.json` from the csproj: `SpaRoot`, `SpaProxyServerUrl`, `SpaProxyLaunchCommand`).
 - Prod: `bun run build` in the client → straight into `../AspNetVue.Server/wwwroot/`
@@ -73,7 +73,14 @@ shape: `Command/Query record` + FluentValidation `Validator` +
 - `wwwroot/` is a build artifact (gitignored), regenerated via the client build.
 - Client route `/status` (a page; the server health endpoint is `/api/health`).
 - All API routes live under the `/api` prefix (unlike upstream):
-  `api/todos*`, `api/users/*`, `api/health`, via `MapEndpoints(app.MapGroup("api"))`.
+  business endpoints use `api/v1/todos*` and `api/v1/users/*`, via
+  `MapEndpoints(app.MapGroup("api/v{version:apiVersion}").WithApiVersionSet(versionSet))`.
+  `Asp.Versioning.Http` reads the URL segment; all 11 endpoints explicitly map to v1.
+  The version segment is mandatory (unversioned business paths and unsupported versions return 404).
+  Health stays version-neutral at `api/health`, outside the versioned group.
+  API Explorer substitutes the version into OpenAPI paths (`/openapi/v1.json`).
+  Future versions must be declared on the version set, mapped per endpoint, and
+  registered as separate OpenAPI documents; no endpoint is implicitly upgraded.
 - Unknown `api/{**}` → `404 JSON` before the fallback,
   never swallowed by `index.html`.
 
@@ -106,7 +113,7 @@ Vue 3 + Vite + TS + Pinia + Vue Router (`src/{app,features,shared}/`).
 | `Cache` | `Provider/DefaultExpirationMinutes/KeyPrefix/Redis:ConnectionString` | Memory, 5, `aspnetvue`, empty |
 
 Ports: API `:5000`, Vite `:5173`, Seq `:8081`.
-Compose: `app` + `postgres:17` (DB `aspnetvue`) + `seq`; the app healthcheck uses `/health`.
+Compose: `app` + `postgres:17` (DB `aspnetvue`) + `seq`; the app healthcheck uses `/api/health`.
 
 ## 8. Deviations from upstream (the only intentional ones)
 
@@ -119,6 +126,7 @@ Compose: `app` + `postgres:17` (DB `aspnetvue`) + `seq`; the app healthcheck use
    + `TreatWarningsAsErrors`; upstream fails the same way).
 6. Template packaging (§6 + `AspNetVue.Template.csproj`).
 7. `/api` prefix on all API routes (§4; upstream has none).
+   Business routes additionally require URL-segment API versioning (`/api/v1/...`).
 8. NOT ported (not functionality): `.claude/skills`, `.github/workflows`,
    `docker-compose.dcproj`, .NET 8/9 Dockerfiles, upstream slnx, upstream README.
 
@@ -129,6 +137,7 @@ Compose: `app` + `postgres:17` (DB `aspnetvue`) + `seq`; the app healthcheck use
   Redis without a connection string throws).
 - Integration (`IntegrationTests`): `WebApplicationFactory<Program>` +
   Testcontainers `postgres:17` (needs Docker Hub).
+  `ApiVersioningTests` verifies routing and OpenAPI without Docker or database access.
 - Architecture (`ArchitectureTests`, NetArchTest): handlers + endpoints must be
   `sealed`; `Features` must not depend directly on `Database`.
 - Build: CPM + `TreatWarningsAsErrors` (`Directory.Build.props` /
