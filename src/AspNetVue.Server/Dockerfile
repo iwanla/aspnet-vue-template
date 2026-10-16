@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1
 # Multi-stage: build Vue (outDir -> ../AspNetVue.Server/wwwroot) lalu publish ASP.NET.
 
-FROM node:22-alpine AS client-build
+FROM oven/bun:1-alpine AS client-build
 WORKDIR /src/src/AspNetVue.Client
-COPY src/AspNetVue.Client/package.json src/AspNetVue.Client/package-lock.json* ./
-RUN npm ci || npm install
+COPY src/AspNetVue.Client/package.json src/AspNetVue.Client/bun.lock* ./
+RUN bun install
 COPY src/AspNetVue.Client/ ./
-RUN npm run build \
+RUN bun run build \
  && ls -la ../AspNetVue.Server/wwwroot
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS publish

@@ -7,7 +7,7 @@
     <!-- SPA proxy (dev: `dotnet run` menjalankan Vite; prod: serve wwwroot/) -->
     <SpaRoot>../AspNetVue.Client/</SpaRoot>
     <SpaProxyServerUrl>http://localhost:5173</SpaProxyServerUrl>
-    <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
+    <SpaProxyLaunchCommand>bun run dev</SpaProxyLaunchCommand>
     <SpaProxyTimeoutInSeconds>120</SpaProxyTimeoutInSeconds>
   </PropertyGroup>
 
@@ -65,7 +65,7 @@
     <InternalsVisibleTo Include="AspNetVue.Server.ArchitectureTests" />
   </ItemGroup>
 
-  <!-- Prod: `npm run build` di client output langsung ke wwwroot/ (lihat vite.config.ts outDir).
-       wwwroot/ otomatis ter-publish sebagai static files. Tidak perlu DistFiles custom. -->
+  <!-- Prod: `bun run build` in the client outputs straight into wwwroot/ (see vite.config.ts outDir).
+       wwwroot/ is auto-published as static files. No custom DistFiles needed. -->
 
 </Project>

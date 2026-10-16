@@ -15,7 +15,7 @@ dotnet new install AspNetVue.Template
 
 # Use it
 dotnet new aspnetvue -n SampleApp
-cd SampleApp/src/SampleApp.Client && npm install
+cd SampleApp/src/SampleApp.Client && bun install
 cd ../SampleApp.Server && dotnet run
 
 # Uninstall
@@ -23,10 +23,10 @@ dotnet new uninstall AspNetVue.Template
 ```
 
 `-n` renames `AspNetVue` → the new name (namespaces, folders, slnx, `vite.config.ts`
-`outDir`) and `aspnetvue` → its lowercase form (compose DB name, npm package name,
+`outDir`) and `aspnetvue` → its lowercase form (compose DB name, package name,
 `Cache:KeyPrefix`). `--skipRestore` skips the automatic NuGet restore.
 `bin/`, `obj/`, `node_modules/`, and build output (`wwwroot/`, `dist/`) are excluded
-from scaffolding; `wwwroot/` is regenerated via `npm run build` in the client.
+from scaffolding; `wwwroot/` is regenerated via `bun run build` in the client.
 
 ## Structure
 
@@ -54,12 +54,12 @@ from scaffolding; `wwwroot/` is regenerated via `npm run build` in the client.
 
 ## Run (dev)
 
-Requires: .NET 10 SDK, Node 22, Docker (for local postgres).
+Requires: .NET 10 SDK, Bun 1.x, Docker (for local postgres).
 
 ```bash
 docker compose up -d postgres        # or use a local postgres
-cd src/AspNetVue.Client && npm install
-cd ../AspNetVue.Server && dotnet run    # auto-runs `npm run dev` via SpaProxy
+cd src/AspNetVue.Client && bun install
+cd ../AspNetVue.Server && dotnet run    # auto-runs `bun run dev` via SpaProxy
 ```
 
 - API: `http://localhost:5000` · Scalar docs: `http://localhost:5000/scalar/v1`
@@ -94,7 +94,7 @@ dotnet test tests/AspNetVue.Server.IntegrationTests  # needs Docker Hub (pulls p
 ## Prod / Docker
 
 ```bash
-cd src/AspNetVue.Client && npm run build   # outputs directly to ../AspNetVue.Server/wwwroot
+cd src/AspNetVue.Client && bun run build   # outputs directly to ../AspNetVue.Server/wwwroot
 docker compose up --build
 # app http://localhost:5000, seq http://localhost:8081
 ```

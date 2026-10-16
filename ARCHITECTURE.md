@@ -63,11 +63,11 @@ shape: `Command/Query record` + FluentValidation `Validator` +
 
 ## 4. SPA hosting (adaptation outside the 1:1 port)
 
-- Dev: `dotnet run :5000` → `SpaProxyLaunchManager (npm run dev)` → Vite `:5173`
+- Dev: `dotnet run :5000` → `SpaProxyLaunchManager (bun run dev)` → Vite `:5173`
   (HMR); Vite fetches to `^/(todos|users|health)(/.*)?$` → Vite proxy → `:5000`
   (no CORS). No manual `UseSpa` (automatic via `SpaHostingStartup` +
   `spa.proxy.json` from the csproj: `SpaRoot`, `SpaProxyServerUrl`, `SpaProxyLaunchCommand`).
-- Prod: `npm run build` in the client → straight into `../AspNetVue.Server/wwwroot/`
+- Prod: `bun run build` in the client → straight into `../AspNetVue.Server/wwwroot/`
   (`vite.config.ts outDir`) → `dotnet publish` single artifact;
   `UseStaticFiles` + `MapFallbackToFile(index.html)` (Vue Router history mode).
 - `wwwroot/` is a build artifact (gitignored), regenerated via the client build.
@@ -80,13 +80,13 @@ shape: `Command/Query record` + FluentValidation `Validator` +
 
 Vue 3 + Vite + TS + Pinia + Vue Router (`src/{app,features,shared}/`).
 `vite.config.ts`: `@` alias, dev proxy to `:5000`, `outDir` into the server wwwroot.
-`npm install` stays manual after scaffolding (no built-in npm post-action).
+`bun install` stays manual after scaffolding (no built-in bun post-action).
 
 ## 6. Template distribution (`dotnet new`)
 
 - Identity `aspnetvue` (`.template.config/template.json`):
   `sourceName: AspNetVue` (namespaces, folders, slnx, vite `outDir`) +
-  derived symbol `lower_name` (compose DB name, npm package name, `Cache:KeyPrefix`).
+  derived symbol `lower_name` (compose DB name, package name, `Cache:KeyPrefix`).
 - Scaffold excludes: `bin/obj/node_modules/dist/wwwroot output/tsbuildinfo`,
   generated `vite.config.js/.d.ts`, and `AspNetVue.Template.csproj` itself.
 - `primaryOutputs` for the 4 csproj files + NuGet restore post-action
