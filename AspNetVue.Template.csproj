@@ -1,0 +1,34 @@
+<!-- Template pack: `dotnet pack` menghasilkan AspNetVue.Template.*.nupkg (PackageType Template).
+     File ini dikecualikan dari hasil scaffolding via template.json. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageType>Template</PackageType>
+    <PackageId>AspNetVue.Template</PackageId>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Title>ASP.NET Core + Vue vertical-slice starter</Title>
+    <Authors>aspnet-vue-template contributors</Authors>
+    <Description>ASP.NET Core vertical-slice API + Vue 3 SPA starter (dotnet new aspnetvue).</Description>
+    <PackageTags>dotnet-new;templates;aspnetcore;vue;vertical-slice</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <!-- Sertakan dotfiles (.template.config, .editorconfig, .gitignore) ke dalam paket. -->
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Dari Directory.Build.props; pack project tidak butuh analyzer. -->
+    <PackageReference Remove="SonarAnalyzer.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="README.md" PackagePath="\" />
+    <Content Include="**/*"
+             Exclude="AspNetVue.Template.csproj;**/bin/**;**/obj/**;**/node_modules/**;**/dist/**;**/TestResults/**;**/.vs/**;**/.idea/**;**/.containers/**;**/.git/**;**/*.tsbuildinfo;**/.DS_Store;src/AspNetVue.Server/wwwroot/**/*;src/AspNetVue.Client/vite.config.js;src/AspNetVue.Client/vite.config.d.ts"
+             PackagePath="content/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

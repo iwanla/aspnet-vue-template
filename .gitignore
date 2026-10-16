@@ -1,0 +1,32 @@
+## .NET
+bin/
+obj/
+out/
+TestResults/
+*.user
+*.suo
+.vs/
+
+## Node / Vite
+node_modules/
+src/AspNetVue.Client/dist/
+src/AspNetVue.Client/dist-ssr/
+src/AspNetVue.Client/vite.config.js
+src/AspNetVue.Client/vite.config.d.ts
+*.tsbuildinfo
+*.local
+
+## SPA output (hasil build, jangan commit manual)
+src/AspNetVue.Server/wwwroot/*
+!src/AspNetVue.Server/wwwroot/.gitkeep
+!src/AspNetVue.Server/wwwroot/.gitignore
+
+## Docker / compose
+.containers/
+
+## OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

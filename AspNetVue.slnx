@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AspNetVue.Server/AspNetVue.Server.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AspNetVue.Server.ArchitectureTests/AspNetVue.Server.ArchitectureTests.csproj" />
+    <Project Path="tests/AspNetVue.Server.IntegrationTests/AspNetVue.Server.IntegrationTests.csproj" />
+    <Project Path="tests/AspNetVue.Server.UnitTests/AspNetVue.Server.UnitTests.csproj" />
+  </Folder>
+</Solution>

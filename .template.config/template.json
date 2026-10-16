@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "aspnet-vue-template contributors",
+  "classifications": ["Web", "API", "SPA", "Vue"],
+  "identity": "AspNetVue.Template",
+  "groupIdentity": "AspNetVue",
+  "name": "ASP.NET Core + Vue vertical-slice starter",
+  "shortName": "aspnetvue",
+  "description": "ASP.NET Core vertical-slice API (CQRS, JWT, EF Core + PostgreSQL, HybridCache) + Vue 3 SPA (SpaProxy dev, single-artifact publish).",
+  "defaultName": "AspNetVue",
+  "preferNameDirectory": true,
+  "sourceName": "AspNetVue",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "symbols": {
+    "skipRestore": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "false",
+      "description": "Skip automatic NuGet restore after scaffolding."
+    },
+    "lower_name": {
+      "type": "derived",
+      "valueSource": "name",
+      "valueTransform": "lowerCaseForm",
+      "replaces": "aspnetvue",
+      "description": "Lowercase project name for DB name, npm package name, and cache key prefix."
+    }
+  },
+  "forms": {
+    "lowerCaseForm": {
+      "identifier": "chain",
+      "steps": ["lowerCaseInvariant"]
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "exclude": [
+            "**/[Bb]in/**",
+            "**/[Oo]bj/**",
+            "**/node_modules/**",
+            "**/dist/**",
+            "**/TestResults/**",
+            "**/.vs/**",
+            "**/.idea/**",
+            "**/.containers/**",
+            "**/.git/**",
+            "**/*.tsbuildinfo",
+            "**/.DS_Store",
+            "src/AspNetVue.Server/wwwroot/**/*",
+            "src/AspNetVue.Client/vite.config.js",
+            "src/AspNetVue.Client/vite.config.d.ts",
+            "AspNetVue.Template.csproj"
+          ]
+        }
+      ]
+    }
+  ],
+  "primaryOutputs": [
+    { "path": "src/AspNetVue.Server/AspNetVue.Server.csproj" },
+    { "path": "tests/AspNetVue.Server.UnitTests/AspNetVue.Server.UnitTests.csproj" },
+    { "path": "tests/AspNetVue.Server.IntegrationTests/AspNetVue.Server.IntegrationTests.csproj" },
+    { "path": "tests/AspNetVue.Server.ArchitectureTests/AspNetVue.Server.ArchitectureTests.csproj" }
+  ],
+  "postActions": [
+    {
+      "condition": "(!skipRestore)",
+      "description": "Restore NuGet packages.",
+      "manualInstructions": [{ "text": "Run 'dotnet restore'" }],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    }
+  ]
+}
