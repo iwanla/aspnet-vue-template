@@ -213,8 +213,9 @@ Features ─► Database
    (namespace `AspNetVue.Server.Database.Entities.Identity`): `User`, `RefreshToken`, `Role`,
    `Permission`, `UserRole`, `RolePermission`. An entity used by a single feature stays in that
    feature root (`Features/Todos/TodoItem.cs`).
-2. Features may use the identity entities. `Features/Users/` holds use cases only (`Register`,
-   `Login`, `Refresh`, `GetUserById`, `GetUserByEmail`) — never entity definitions.
+2. Features may use the identity entities, and hold use cases only — never entity definitions.
+   `Features/Identity/` owns the credential/token lifecycle (`Register`, `Login`, `Refresh`);
+   `Features/Users/` owns the user-record read model (`GetUserById`, `GetUserByEmail`).
 3. EF configurations follow their entity: identity configurations stay in
    `Database/Configurations/`, a feature configuration lives in the feature root
    (`Features/Todos/TodoItemConfiguration.cs`). `ApplyConfigurationsFromAssembly` finds both, so
@@ -226,6 +227,13 @@ Features ─► Database
    data goes into the feature's own entity keyed by `UserId`; columns are not added to `User`.
 6. Enforced by `ArchitectureTests`: types in `Authentication`/`Authorization`/`Database`/`Common`
    must not depend on `AspNetVue.Server.Features`.
+7. An error used by more than one feature lives in `Common/Errors/` (`UserErrors` is reported by
+   the Todos ownership checks, the Users profile lookups, and the Identity login attempt). An
+   error a single feature owns stays with it (`Features/Identity/IdentityErrors.cs`,
+   `Features/Todos/TodoItemErrors.cs`). A feature never references another feature.
+8. A route prefix matches its feature folder (`identity/register`, `users/{userId}`), so renaming
+   or splitting a feature is an API change: update `README.md`, the OpenAPI tag
+   (`Common/Endpoints/Tags.cs`), and the integration tests together.
 
 Rule of thumb: if deleting a feature broke `Authorization/`'s compilation, the entity was not
 owned by that feature.

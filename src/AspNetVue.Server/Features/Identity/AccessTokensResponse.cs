@@ -1,3 +1,3 @@
-namespace AspNetVue.Server.Features.Users;
+namespace AspNetVue.Server.Features.Identity;
 
 public sealed record AccessTokensResponse(string AccessToken, string RefreshToken);

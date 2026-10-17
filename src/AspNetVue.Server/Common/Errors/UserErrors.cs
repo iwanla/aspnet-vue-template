@@ -1,7 +1,13 @@
 using AspNetVue.Server.Common;
 
-namespace AspNetVue.Server.Features.Users;
+namespace AspNetVue.Server.Common.Errors;
 
+/// <summary>
+/// Errors about the user record itself. They live in <c>Common/</c> because more than one feature
+/// reports them: the ownership/not-found checks are shared by the Todos and Users features, and
+/// <see cref="NotFoundByEmail"/> is shared by the profile lookup and the login attempt (which stays
+/// deliberately ambiguous so it cannot be used to enumerate accounts).
+/// </summary>
 public static class UserErrors
 {
     public static Error NotFound(Guid userId) => Error.NotFound(
@@ -15,12 +21,4 @@ public static class UserErrors
     public static readonly Error NotFoundByEmail = Error.NotFound(
         "Users.NotFoundByEmail",
         "The user with the specified email was not found");
-
-    public static readonly Error EmailNotUnique = Error.Conflict(
-        "Users.EmailNotUnique",
-        "The provided email is not unique");
-
-    public static readonly Error InvalidRefreshToken = Error.Problem(
-        "Users.InvalidRefreshToken",
-        "The provided refresh token is invalid or has expired");
 }

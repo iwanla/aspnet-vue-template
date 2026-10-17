@@ -52,7 +52,7 @@ public sealed class ApiVersioningTests
 
         JsonElement paths = document.RootElement.GetProperty("paths");
         paths.TryGetProperty("/api/v1/todos", out _).ShouldBeTrue();
-        paths.TryGetProperty("/api/v1/users/register", out _).ShouldBeTrue();
+        paths.TryGetProperty("/api/v1/identity/register", out _).ShouldBeTrue();
         foreach (JsonProperty path in paths.EnumerateObject())
         {
             path.Name.StartsWith("/api/v1/", StringComparison.Ordinal).ShouldBeTrue();

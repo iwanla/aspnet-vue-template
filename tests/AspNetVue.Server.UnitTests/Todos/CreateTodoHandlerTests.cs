@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Errors;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Database.Entities.Identity;
 using AspNetVue.Server.Features.Todos;
 using AspNetVue.Server.Features.Todos.CreateTodo;
-using AspNetVue.Server.Features.Users;
 using AspNetVue.Server.UnitTests.Abstractions;
 
 namespace AspNetVue.Server.UnitTests.Todos;

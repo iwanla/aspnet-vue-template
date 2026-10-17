@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace AspNetVue.Server.Features.Users.Register;
+namespace AspNetVue.Server.Features.Identity.Register;
 
 public sealed class RegisterValidator : AbstractValidator<RegisterCommand>
 {

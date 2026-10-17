@@ -5,9 +5,9 @@ using AspNetVue.Server.Common;
 using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Database.Entities.Identity;
-using AspNetVue.Server.Features.Users;
+using AspNetVue.Server.Features.Identity;
 
-namespace AspNetVue.Server.Features.Users.Register;
+namespace AspNetVue.Server.Features.Identity.Register;
 
 internal sealed class RegisterHandler(ApplicationDbContext context, IPasswordHasher passwordHasher)
     : ICommandHandler<RegisterCommand, Guid>
@@ -16,7 +16,7 @@ internal sealed class RegisterHandler(ApplicationDbContext context, IPasswordHas
     {
         if (await context.Users.AnyAsync(u => u.Email == command.Email, cancellationToken))
         {
-            return Result.Failure<Guid>(UserErrors.EmailNotUnique);
+            return Result.Failure<Guid>(IdentityErrors.EmailNotUnique);
         }
 
         var user = new User

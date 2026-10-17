@@ -37,9 +37,9 @@ from scaffolding; `wwwroot/` is regenerated via `bun run build` in the client.
 │   ├── AspNetVue.Server/            ← ASP.NET Core (vertical-slice port)
 │   │   ├── Authentication/      ← JWT, password hasher, token provider, user context
 │   │   ├── Authorization/      ← RBAC: policy/handler/provider, permission catalog + seeder
-│   │   ├── Common/             ← Result/Error, behaviors, endpoints, middleware, messaging
+│   │   ├── Common/             ← Result/Error + shared errors, behaviors, endpoints, messaging
 │   │   ├── Database/           ← DbContext, Entities/Identity/, configs, migrations
-│   │   ├── Features/Todos|Users/ ← vertical slices (endpoint + handler + validator)
+│   │   ├── Features/Todos|Users|Identity/ ← vertical slices (endpoint + handler + validator)
 │   │   ├── Integrations/Email|Cache/ ← IEmailSender, HybridCache + Redis option
 │   │   ├── Program.cs / DependencyInjection.cs
 │   │   └── wwwroot/            ← client build output (gitignored)
@@ -47,7 +47,7 @@ from scaffolding; `wwwroot/` is regenerated via `bun run build` in the client.
 ├── tests/
 │   ├── AspNetVue.Server.UnitTests/         ← handler tests (InMemory + NSubstitute)
 │   ├── AspNetVue.Server.IntegrationTests/  ← Testcontainers postgres:17
-│   └── AspNetVue.Server.ArchitectureTests/ ← NetArchTest (sealed handlers/endpoints, layering)
+│   └── AspNetVue.Server.ArchitectureTests/ ← NetArchTest (sealed handlers/endpoints, layering, feature isolation)
 ├── README.md / ARCHITECTURE.md   ← architecture + decisions (no ADR folder)
 └── docker-compose.yml                  ← app + postgres + seq
 ```
@@ -77,9 +77,9 @@ cd ../AspNetVue.Server && dotnet run    # auto-runs `bun run dev` via SpaProxy
 
 | Method | Route | Auth |
 |---|---|---|
-| POST | `api/v1/users/register` | anon, rate-limit `authentication` |
-| POST | `api/v1/users/login` | anon, rate-limit `authentication` → `{ accessToken, refreshToken }` |
-| POST | `api/v1/users/refresh-token` | anon, rate-limit `authentication` |
+| POST | `api/v1/identity/register` | anon, rate-limit `authentication` |
+| POST | `api/v1/identity/login` | anon, rate-limit `authentication` → `{ accessToken, refreshToken }` |
+| POST | `api/v1/identity/refresh-token` | anon, rate-limit `authentication` |
 | GET | `api/v1/users/{userId}` | permission `users:access` |
 | POST / GET / GET{id} / PUT / DELETE / PUT complete / POST copy | `api/v1/todos…` | permissions `todos:read/create/update/delete` |
 | GET | `api/health` | anon (Npgsql check) |
@@ -109,8 +109,10 @@ Permission-based: the database is the source of truth, the JWT only carries iden
 - `AuthorizationDataInitializer` migrates in Development and seeds the catalog on every start:
   the `admin` role gets every permission, `user` gets `todos:*`.
 - Bootstrap: the first registrant additionally becomes `admin`, every registrant gets `user`
-  (`RegisterHandler`). Endpoints check permissions only (`.HasPermission(...)`); handlers never
-  check roles.
+  (`Features/Identity/Register/RegisterHandler.cs`). Endpoints check permissions only
+  (`.HasPermission(...)`); handlers never check roles.
+- The credential/token endpoints under `/api/v1/identity/*` are anonymous; the user-record
+  endpoint `/api/v1/users/{userId}` requires `users:access`.
 - `IPermissionProvider` reads a user's permissions in one query and caches them for 2 minutes
   (`auth:permissions:<userId>`); access is denied when permissions cannot be resolved.
 
@@ -121,7 +123,7 @@ Full rules: `ARCHITECTURE.md` §10 (RBAC) and §11 (layering).
 ## Tests
 
 ```bash
-dotnet test                        # unit (38) + architecture (3)
+dotnet test                        # unit (38) + architecture (4)
 dotnet test tests/AspNetVue.Server.IntegrationTests  # needs Docker Hub (pulls postgres:17)
 ```
 

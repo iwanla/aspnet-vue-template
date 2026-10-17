@@ -1,8 +1,8 @@
 using AspNetVue.Server.Common;
-using AspNetVue.Server.Features.Users;
+using AspNetVue.Server.Features.Identity;
 using AspNetVue.Server.Integrations.Email;
 
-namespace AspNetVue.Server.Features.Users.Register;
+namespace AspNetVue.Server.Features.Identity.Register;
 
 internal sealed class UserRegisteredDomainEventHandler(IEmailSender emailSender)
     : IDomainEventHandler<UserRegisteredDomainEvent>

@@ -5,7 +5,7 @@ using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Database.Entities.Identity;
 
-namespace AspNetVue.Server.Features.Users.Refresh;
+namespace AspNetVue.Server.Features.Identity.Refresh;
 
 internal sealed class RefreshHandler(
     ApplicationDbContext context,
@@ -20,7 +20,7 @@ internal sealed class RefreshHandler(
 
         if (refreshToken is null || refreshToken.ExpiresOnUtc < dateTimeProvider.UtcNow)
         {
-            return Result.Failure<AccessTokensResponse>(UserErrors.InvalidRefreshToken);
+            return Result.Failure<AccessTokensResponse>(IdentityErrors.InvalidRefreshToken);
         }
 
         string accessToken = tokenProvider.Create(refreshToken.User);

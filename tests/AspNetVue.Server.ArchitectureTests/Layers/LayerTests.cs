@@ -44,17 +44,44 @@ public class LayerTests : BaseTest
         // the dependency points Features -> Authentication/Authorization/Database/Common.
         TestResult result = Types.InAssembly(WebApiAssembly)
             .That()
-            .ResideInNamespace("AspNetVue.Server.Authentication")
+            .ResideInNamespaceStartingWith("AspNetVue.Server.Authentication")
             .Or()
-            .ResideInNamespace("AspNetVue.Server.Authorization")
+            .ResideInNamespaceStartingWith("AspNetVue.Server.Authorization")
             .Or()
-            .ResideInNamespace("AspNetVue.Server.Database")
+            .ResideInNamespaceStartingWith("AspNetVue.Server.Database")
             .Or()
-            .ResideInNamespace("AspNetVue.Server.Common")
+            .ResideInNamespaceStartingWith("AspNetVue.Server.Common")
             .ShouldNot()
             .HaveDependencyOn("AspNetVue.Server.Features")
             .GetResult();
 
         result.IsSuccessful.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void Features_Should_NotDependOn_EachOther()
+    {
+        // Features are independent vertical slices: anything shared (errors, helpers) goes to
+        // Common/, never from one feature to another (see ARCHITECTURE.md §11).
+        string[] features = ["Todos", "Users", "Identity"];
+
+        foreach (string feature in features)
+        {
+            string[] otherFeatures = [.. features
+                .Where(other => other != feature)
+                .Select(other => $"AspNetVue.Server.Features.{other}")];
+
+            TestResult result = Types.InAssembly(WebApiAssembly)
+                .That()
+                .ResideInNamespaceStartingWith($"AspNetVue.Server.Features.{feature}")
+                .ShouldNot()
+                .HaveDependencyOnAny(otherFeatures)
+                .GetResult();
+
+            result.IsSuccessful.ShouldBeTrue(
+                $"Features/{feature} must not depend on {string.Join(", ", otherFeatures)}; " +
+                $"move the shared type to Common/. Offending types: " +
+                string.Join(", ", result.FailingTypeNames ?? []));
+        }
     }
 }

@@ -1,3 +1,3 @@
-namespace AspNetVue.Server.Features.Users.Login;
+namespace AspNetVue.Server.Features.Identity.Login;
 
 public sealed record LoginRequest(string Email, string Password);

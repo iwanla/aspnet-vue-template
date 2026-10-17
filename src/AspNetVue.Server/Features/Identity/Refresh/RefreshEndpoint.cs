@@ -3,13 +3,13 @@ using AspNetVue.Server.Common.Endpoints;
 using AspNetVue.Server.Common.Extensions;
 using AspNetVue.Server.Common.Messaging;
 
-namespace AspNetVue.Server.Features.Users.Refresh;
+namespace AspNetVue.Server.Features.Identity.Refresh;
 
 public sealed class RefreshEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("users/refresh-token", async (
+        app.MapPost("identity/refresh-token", async (
             RefreshRequest request,
             ICommandHandler<RefreshCommand, AccessTokensResponse> handler,
             CancellationToken cancellationToken) =>
@@ -20,7 +20,7 @@ public sealed class RefreshEndpoint : IEndpoint
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })
-        .WithTags(Tags.Users)
+        .WithTags(Tags.Identity)
         .MapToApiVersion(1)
         .Produces<AccessTokensResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)

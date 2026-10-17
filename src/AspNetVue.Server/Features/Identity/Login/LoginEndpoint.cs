@@ -3,32 +3,28 @@ using AspNetVue.Server.Common.Endpoints;
 using AspNetVue.Server.Common.Extensions;
 using AspNetVue.Server.Common.Messaging;
 
-namespace AspNetVue.Server.Features.Users.Register;
+namespace AspNetVue.Server.Features.Identity.Login;
 
-public sealed class RegisterEndpoint : IEndpoint
+public sealed class LoginEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("users/register", async (
-            RegisterRequest request,
-            ICommandHandler<RegisterCommand, Guid> handler,
+        app.MapPost("identity/login", async (
+            LoginRequest request,
+            ICommandHandler<LoginCommand, AccessTokensResponse> handler,
             CancellationToken cancellationToken) =>
         {
-            var command = new RegisterCommand(
-                request.Email,
-                request.FirstName,
-                request.LastName,
-                request.Password);
+            var command = new LoginCommand(request.Email, request.Password);
 
-            Result<Guid> result = await handler.Handle(command, cancellationToken);
+            Result<AccessTokensResponse> result = await handler.Handle(command, cancellationToken);
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })
-        .WithTags(Tags.Users)
+        .WithTags(Tags.Identity)
         .MapToApiVersion(1)
-        .Produces<Guid>(StatusCodes.Status200OK)
+        .Produces<AccessTokensResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest)
-        .ProducesProblem(StatusCodes.Status409Conflict)
+        .ProducesProblem(StatusCodes.Status404NotFound)
         .ProducesProblem(StatusCodes.Status500InternalServerError)
         .Produces(StatusCodes.Status429TooManyRequests)
         .RequireRateLimiting(RateLimitingPolicies.Authentication);

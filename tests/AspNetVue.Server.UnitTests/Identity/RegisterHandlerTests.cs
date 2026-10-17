@@ -2,13 +2,14 @@ using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Authorization;
 using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Errors;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Database.Entities.Identity;
-using AspNetVue.Server.Features.Users;
-using AspNetVue.Server.Features.Users.Register;
+using AspNetVue.Server.Features.Identity;
+using AspNetVue.Server.Features.Identity.Register;
 using AspNetVue.Server.UnitTests.Abstractions;
 
-namespace AspNetVue.Server.UnitTests.Users;
+namespace AspNetVue.Server.UnitTests.Identity;
 
 public sealed class RegisterHandlerTests : BaseHandlerTest
 {
@@ -37,7 +38,7 @@ public sealed class RegisterHandlerTests : BaseHandlerTest
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(UserErrors.EmailNotUnique);
+        result.Error.ShouldBe(IdentityErrors.EmailNotUnique);
     }
 
     [Fact]

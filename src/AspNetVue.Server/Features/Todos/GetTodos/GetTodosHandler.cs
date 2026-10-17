@@ -2,9 +2,9 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Errors;
 using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
-using AspNetVue.Server.Features.Users;
 
 namespace AspNetVue.Server.Features.Todos.GetTodos;
 

@@ -1,0 +1,36 @@
+using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Endpoints;
+using AspNetVue.Server.Common.Extensions;
+using AspNetVue.Server.Common.Messaging;
+
+namespace AspNetVue.Server.Features.Identity.Register;
+
+public sealed class RegisterEndpoint : IEndpoint
+{
+    public void MapEndpoint(IEndpointRouteBuilder app)
+    {
+        app.MapPost("identity/register", async (
+            RegisterRequest request,
+            ICommandHandler<RegisterCommand, Guid> handler,
+            CancellationToken cancellationToken) =>
+        {
+            var command = new RegisterCommand(
+                request.Email,
+                request.FirstName,
+                request.LastName,
+                request.Password);
+
+            Result<Guid> result = await handler.Handle(command, cancellationToken);
+
+            return result.Match(Results.Ok, CustomResults.Problem);
+        })
+        .WithTags(Tags.Identity)
+        .MapToApiVersion(1)
+        .Produces<Guid>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest)
+        .ProducesProblem(StatusCodes.Status409Conflict)
+        .ProducesProblem(StatusCodes.Status500InternalServerError)
+        .Produces(StatusCodes.Status429TooManyRequests)
+        .RequireRateLimiting(RateLimitingPolicies.Authentication);
+    }
+}

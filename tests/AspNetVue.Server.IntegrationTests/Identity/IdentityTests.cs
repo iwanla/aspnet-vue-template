@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 
-namespace AspNetVue.Server.IntegrationTests.Users;
+namespace AspNetVue.Server.IntegrationTests.Identity;
 
-public sealed class UsersTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
+public sealed class IdentityTests(IntegrationTestWebAppFactory factory) : BaseIntegrationTest(factory)
 {
     [Fact]
     public async Task Register_Should_ReturnUserId()
@@ -39,7 +39,7 @@ public sealed class UsersTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
         // Act
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
-            "api/v1/users/login",
+            "api/v1/identity/login",
             new { email, password = "WrongPassword1" });
 
         // Assert
@@ -56,7 +56,7 @@ public sealed class UsersTests(IntegrationTestWebAppFactory factory) : BaseInteg
 
         // Act
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
-            "api/v1/users/refresh-token",
+            "api/v1/identity/refresh-token",
             new { refreshToken = tokens.RefreshToken });
 
         // Assert
@@ -71,7 +71,7 @@ public sealed class UsersTests(IntegrationTestWebAppFactory factory) : BaseInteg
     {
         // Act
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
-            "api/v1/users/refresh-token",
+            "api/v1/identity/refresh-token",
             new { refreshToken = "this-token-does-not-exist" });
 
         // Assert

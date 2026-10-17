@@ -1,7 +1,7 @@
 using FluentValidation.TestHelper;
-using AspNetVue.Server.Features.Users.Login;
+using AspNetVue.Server.Features.Identity.Login;
 
-namespace AspNetVue.Server.UnitTests.Users;
+namespace AspNetVue.Server.UnitTests.Identity;
 
 public sealed class LoginUserCommandValidatorTests
 {

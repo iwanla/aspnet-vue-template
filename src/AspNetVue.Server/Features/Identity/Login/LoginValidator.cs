@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace AspNetVue.Server.Features.Users.Login;
+namespace AspNetVue.Server.Features.Identity.Login;
 
 public sealed class LoginValidator : AbstractValidator<LoginCommand>
 {

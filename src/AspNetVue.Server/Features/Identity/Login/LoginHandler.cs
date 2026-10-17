@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Errors;
 using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Database.Entities.Identity;
 
-namespace AspNetVue.Server.Features.Users.Login;
+namespace AspNetVue.Server.Features.Identity.Login;
 
 internal sealed class LoginHandler(
     ApplicationDbContext context,

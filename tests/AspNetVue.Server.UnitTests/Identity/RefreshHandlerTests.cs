@@ -1,13 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Errors;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Database.Entities.Identity;
-using AspNetVue.Server.Features.Users;
-using AspNetVue.Server.Features.Users.Refresh;
+using AspNetVue.Server.Features.Identity;
+using AspNetVue.Server.Features.Identity.Refresh;
 using AspNetVue.Server.UnitTests.Abstractions;
 
-namespace AspNetVue.Server.UnitTests.Users;
+namespace AspNetVue.Server.UnitTests.Identity;
 
 public sealed class RefreshHandlerTests : BaseHandlerTest
 {
@@ -28,7 +29,7 @@ public sealed class RefreshHandlerTests : BaseHandlerTest
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(UserErrors.InvalidRefreshToken);
+        result.Error.ShouldBe(IdentityErrors.InvalidRefreshToken);
     }
 
     [Fact]
@@ -54,7 +55,7 @@ public sealed class RefreshHandlerTests : BaseHandlerTest
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(UserErrors.InvalidRefreshToken);
+        result.Error.ShouldBe(IdentityErrors.InvalidRefreshToken);
     }
 
     [Fact]
