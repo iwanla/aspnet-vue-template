@@ -220,7 +220,7 @@ Features ─► Database
 2. Features may use the identity entities, and hold use cases only — never entity definitions.
    `Features/Identity/` owns the credential/token lifecycle and the caller's own session
    (`Register`, `Login`, `Refresh`, `Me`); `Features/Users/` owns the user-record read model
-   (`GetUserById`, `GetUserByEmail`).
+   (`GetUsers`, `GetUserById`).
 3. EF configurations follow their entity: identity configurations stay in
    `Database/Configurations/`, a feature configuration lives in the feature root
    (`Features/Todos/TodoItemConfiguration.cs`). `ApplyConfigurationsFromAssembly` finds both, so

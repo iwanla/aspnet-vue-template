@@ -41,6 +41,21 @@ public sealed class AuthorizationTests : BaseIntegrationTest
     }
 
     [Fact]
+    public async Task GetUsers_Should_ReturnForbidden_WhenUserHasNoRoleGrantingThePermission()
+    {
+        // Arrange
+        (Guid userId, AccessTokens tokens) = await RegisterAndLoginAsync();
+        await RemoveRolesAsync(userId);
+        Authenticate(tokens.AccessToken);
+
+        // Act
+        HttpResponseMessage response = await HttpClient.GetAsync("api/v1/users");
+
+        // Assert: authenticated but without `users:access` -> 403, never 200.
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
     public async Task GetTodos_Should_Succeed_ForARegisteredUser()
     {
         // Arrange: the seeded `user` role carries the todos permissions.

@@ -26,6 +26,7 @@ public sealed class ApiVersioningTests
 
     [Theory]
     [InlineData("/api/v1/todos", HttpStatusCode.Unauthorized)]
+    [InlineData("/api/v1/users", HttpStatusCode.Unauthorized)]
     [InlineData("/api/todos", HttpStatusCode.NotFound)]
     [InlineData("/api/v2/todos", HttpStatusCode.NotFound)]
     [InlineData("/api/v1/health", HttpStatusCode.NotFound)]

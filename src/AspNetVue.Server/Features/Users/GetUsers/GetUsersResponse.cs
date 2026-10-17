@@ -1,6 +1,6 @@
-namespace AspNetVue.Server.Features.Users.GetUserByEmail;
+namespace AspNetVue.Server.Features.Users.GetUsers;
 
-public sealed record GetUserByEmailResponse
+public sealed record GetUsersResponse
 {
     public Guid Id { get; init; }
 

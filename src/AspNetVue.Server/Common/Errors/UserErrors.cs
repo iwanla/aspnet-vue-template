@@ -4,9 +4,9 @@ namespace AspNetVue.Server.Common.Errors;
 
 /// <summary>
 /// Errors about the user record itself. They live in <c>Common/</c> because more than one feature
-/// reports them: the ownership/not-found checks are shared by the Todos and Users features, and
-/// <see cref="NotFoundByEmail"/> is shared by the profile lookup and the login attempt (which stays
-/// deliberately ambiguous so it cannot be used to enumerate accounts).
+/// reports them: the ownership/not-found checks are shared by the Todos and Users features.
+/// <see cref="NotFoundByEmail"/> is reported by the login attempt and stays
+/// deliberately ambiguous so it cannot be used to enumerate accounts.
 /// </summary>
 public static class UserErrors
 {
