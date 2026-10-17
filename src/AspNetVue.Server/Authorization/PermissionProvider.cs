@@ -4,7 +4,7 @@ using AspNetVue.Server.Database;
 
 namespace AspNetVue.Server.Authorization;
 
-internal sealed class PermissionProvider(ApplicationDbContext db, HybridCache cache) : IPermissionProvider
+internal sealed class PermissionProvider(ApplicationDbContext dbContext, HybridCache cache) : IPermissionProvider
 {
     private static readonly HybridCacheEntryOptions EntryOptions = new()
     {
@@ -35,7 +35,7 @@ internal sealed class PermissionProvider(ApplicationDbContext db, HybridCache ca
 
     /// <summary>One query for every permission the user has, through their roles.</summary>
     private async Task<string[]> LoadAsync(Guid userId, CancellationToken cancellationToken) =>
-        await db.UserRoles
+        await dbContext.UserRoles
             .AsNoTracking()
             .Where(userRole => userRole.UserId == userId)
             .SelectMany(userRole => userRole.Role.RolePermissions.Select(rolePermission => rolePermission.Permission.Name))
