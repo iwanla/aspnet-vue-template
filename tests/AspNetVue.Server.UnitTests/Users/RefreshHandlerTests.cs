@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common;
 using AspNetVue.Server.Database;
+using AspNetVue.Server.Database.Entities.Identity;
 using AspNetVue.Server.Features.Users;
 using AspNetVue.Server.Features.Users.Refresh;
 using AspNetVue.Server.UnitTests.Abstractions;

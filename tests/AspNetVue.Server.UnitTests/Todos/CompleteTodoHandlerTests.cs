@@ -81,7 +81,7 @@ public sealed class CompleteTodoHandlerTests : BaseHandlerTest
         // Assert
         result.IsSuccess.ShouldBeTrue();
 
-        TodoItem todoItem = await context.TodoItems.SingleAsync(t => t.Id == todoItemId);
+        TodoItem todoItem = await context.Set<TodoItem>().SingleAsync(t => t.Id == todoItemId);
         todoItem.IsCompleted.ShouldBeTrue();
         todoItem.CompletedAt.ShouldBe(completedAt);
         await dispatcher.Received().DispatchAsync(
@@ -103,7 +103,7 @@ public sealed class CompleteTodoHandlerTests : BaseHandlerTest
             CompletedAt = isCompleted ? DateTime.UtcNow : null
         };
 
-        context.TodoItems.Add(todoItem);
+        context.Set<TodoItem>().Add(todoItem);
         await context.SaveChangesAsync();
 
         return todoItem.Id;

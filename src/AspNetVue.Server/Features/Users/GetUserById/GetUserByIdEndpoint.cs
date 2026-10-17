@@ -20,7 +20,7 @@ public sealed class GetUserByIdEndpoint : IEndpoint
 
             return result.Match(Results.Ok, CustomResults.Problem);
         })
-        .HasPermission(Permissions.UsersAccess)
+        .HasPermission(UsersPermissions.UsersAccess)
         .WithTags(Tags.Users)
         .MapToApiVersion(1)
         .Produces<GetUserByIdResponse>(StatusCodes.Status200OK)

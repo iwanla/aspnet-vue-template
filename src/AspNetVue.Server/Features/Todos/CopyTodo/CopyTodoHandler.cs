@@ -3,6 +3,7 @@ using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common;
 using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
+using AspNetVue.Server.Database.Entities.Identity;
 using AspNetVue.Server.Features.Users;
 
 namespace AspNetVue.Server.Features.Todos.CopyTodo;
@@ -28,7 +29,7 @@ internal sealed class CopyTodoHandler(
             return Result.Failure<Guid>(UserErrors.NotFound(command.UserId));
         }
 
-        TodoItem? existingTodo = await context.TodoItems.AsNoTracking()
+        TodoItem? existingTodo = await context.Set<TodoItem>().AsNoTracking()
             .SingleOrDefaultAsync(t => t.Id == command.TodoId && t.UserId == command.UserId, cancellationToken);
 
         if (existingTodo is null)
@@ -49,7 +50,7 @@ internal sealed class CopyTodoHandler(
 
         copiedTodoItem.Raise(new TodoItemCreatedDomainEvent(copiedTodoItem.Id));
 
-        context.TodoItems.Add(copiedTodoItem);
+        context.Set<TodoItem>().Add(copiedTodoItem);
 
         await context.SaveChangesAsync(cancellationToken);
 

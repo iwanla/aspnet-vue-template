@@ -1,4 +1,4 @@
-namespace AspNetVue.Server.Features.Users;
+namespace AspNetVue.Server.Database.Entities.Identity;
 
 public sealed class RefreshToken
 {

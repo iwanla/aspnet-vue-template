@@ -29,6 +29,6 @@ public sealed class UpdateTodoEndpoint : IEndpoint
         .ProducesProblem(StatusCodes.Status500InternalServerError)
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden)
-        .RequireAuthorization();
+        .HasPermission(TodosPermissions.TodosUpdate);
     }
 }

@@ -47,7 +47,7 @@ public sealed class GetTodoByIdHandlerTests : BaseHandlerTest
             IsCompleted = false,
             CreatedAt = DateTime.UtcNow
         };
-        context.TodoItems.Add(todoItem);
+        context.Set<TodoItem>().Add(todoItem);
         await context.SaveChangesAsync();
 
         HybridCache cache = CreateCache();

@@ -148,7 +148,17 @@ public static class DependencyInjection
     {
         services.AddAuthorization();
 
-        services.AddScoped<PermissionProvider>();
+        services.AddScoped<IPermissionProvider, PermissionProvider>();
+
+        services.AddScoped<AuthorizationSeeder>();
+
+        services.AddHostedService<AuthorizationDataInitializer>();
+
+        // Collect the permission catalog from the features without referencing them.
+        services.Scan(scan => scan.FromAssembliesOf(typeof(DependencyInjection))
+            .AddClasses(classes => classes.AssignableTo<IPermissionCatalog>(), publicOnly: false)
+                .AsImplementedInterfaces()
+                .WithSingletonLifetime());
 
         services.AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>();
 

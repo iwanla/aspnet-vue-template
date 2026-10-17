@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using AspNetVue.Server.Authentication;
-using AspNetVue.Server.Features.Users;
+using AspNetVue.Server.Database.Entities.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;

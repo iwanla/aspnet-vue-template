@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common;
 using AspNetVue.Server.Database;
+using AspNetVue.Server.Database.Entities.Identity;
 using AspNetVue.Server.Features.Todos;
 using AspNetVue.Server.Features.Todos.CreateTodo;
 using AspNetVue.Server.Features.Users;
@@ -78,7 +79,7 @@ public sealed class CreateTodoHandlerTests : BaseHandlerTest
         Result<Guid> result = await handler.Handle(Command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
-        TodoItem todoItem = await context.TodoItems.SingleAsync(t => t.Id == result.Value);
+        TodoItem todoItem = await context.Set<TodoItem>().SingleAsync(t => t.Id == result.Value);
         todoItem.Description.ShouldBe("Write unit tests");
         todoItem.UserId.ShouldBe(UserId);
         await dispatcher.Received().DispatchAsync(

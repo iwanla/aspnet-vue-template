@@ -18,7 +18,7 @@ internal sealed class GetTodosHandler(ApplicationDbContext context, IUserContext
             return Result.Failure<PagedList<GetTodosResponse>>(UserErrors.Unauthorized());
         }
 
-        IQueryable<TodoItem> todosQuery = context.TodoItems
+        IQueryable<TodoItem> todosQuery = context.Set<TodoItem>()
             .Where(todoItem => todoItem.UserId == query.UserId);
 
         if (!string.IsNullOrWhiteSpace(query.Search))

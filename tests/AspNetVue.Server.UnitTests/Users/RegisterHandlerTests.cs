@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authentication;
+using AspNetVue.Server.Authorization;
 using AspNetVue.Server.Common;
 using AspNetVue.Server.Database;
+using AspNetVue.Server.Database.Entities.Identity;
 using AspNetVue.Server.Features.Users;
 using AspNetVue.Server.Features.Users.Register;
 using AspNetVue.Server.UnitTests.Abstractions;
@@ -62,5 +64,57 @@ public sealed class RegisterHandlerTests : BaseHandlerTest
         await dispatcher.Received().DispatchAsync(
             Arg.Is<IEnumerable<IDomainEvent>>(events => events.Any(e => e is UserRegisteredDomainEvent)),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_Should_AssignUserRole_WhenTheRoleExists()
+    {
+        // Arrange
+        await using ApplicationDbContext context = CreateDbContext();
+        var userRole = new Role { Id = Guid.NewGuid(), Name = RoleNames.User };
+        context.Roles.Add(userRole);
+        await context.SaveChangesAsync();
+
+        var handler = new RegisterHandler(context, Substitute.For<IPasswordHasher>());
+
+        // Act
+        Result<Guid> result = await handler.Handle(Command, CancellationToken.None);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        (await context.UserRoles.AnyAsync(userRole => userRole.UserId == result.Value))
+            .ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task Handle_Should_AssignAdminRoleToTheFirstUserOnly()
+    {
+        // Arrange
+        await using ApplicationDbContext context = CreateDbContext();
+        context.Roles.AddRange(
+            new Role { Id = Guid.NewGuid(), Name = RoleNames.User },
+            new Role { Id = Guid.NewGuid(), Name = RoleNames.Admin });
+        await context.SaveChangesAsync();
+
+        var handler = new RegisterHandler(context, Substitute.For<IPasswordHasher>());
+
+        // Act
+        Result<Guid> first = await handler.Handle(
+            new RegisterCommand("first@example.com", "First", "User", "Password123"),
+            CancellationToken.None);
+        Result<Guid> second = await handler.Handle(
+            new RegisterCommand("second@example.com", "Second", "User", "Password123"),
+            CancellationToken.None);
+
+        // Assert
+        Guid adminRoleId = await context.Roles
+            .Where(role => role.Name == RoleNames.Admin)
+            .Select(role => role.Id)
+            .SingleAsync();
+
+        (await context.UserRoles.AnyAsync(userRole => userRole.UserId == first.Value && userRole.RoleId == adminRoleId))
+            .ShouldBeTrue();
+        (await context.UserRoles.AnyAsync(userRole => userRole.UserId == second.Value && userRole.RoleId == adminRoleId))
+            .ShouldBeFalse();
     }
 }

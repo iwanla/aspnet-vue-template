@@ -4,29 +4,61 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AspNetVue.Server.Authorization;
 
-internal sealed class PermissionAuthorizationHandler(IServiceScopeFactory serviceScopeFactory)
+internal sealed class PermissionAuthorizationHandler(
+    IServiceScopeFactory serviceScopeFactory,
+    IHttpContextAccessor httpContextAccessor,
+    ILogger<PermissionAuthorizationHandler> logger)
     : AuthorizationHandler<PermissionRequirement>
 {
+    private const string PermissionsItemKey = "AspNetVue.Server.UserPermissions";
+
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
         PermissionRequirement requirement)
     {
-        // TODO: You definitely want to reject unauthenticated users here.
-        if (context.User is { Identity.IsAuthenticated: true })
+        if (context.User.Identity?.IsAuthenticated is not true)
         {
-            // TODO: Remove this call when you implement the PermissionProvider.GetForUserIdAsync
-            context.Succeed(requirement);
-
+            // Unauthenticated requests never satisfy a permission requirement.
             return;
         }
 
-        using IServiceScope scope = serviceScopeFactory.CreateScope();
+        if (!context.User.TryGetUserId(out Guid userId))
+        {
+            logger.LogWarning("Authenticated principal without a valid user id claim.");
+            return;
+        }
 
-        PermissionProvider permissionProvider = scope.ServiceProvider.GetRequiredService<PermissionProvider>();
+        HttpContext? httpContext = httpContextAccessor.HttpContext;
+        if (httpContext is null)
+        {
+            return;
+        }
 
-        Guid userId = context.User.GetUserId();
+        IReadOnlySet<string> permissions;
 
-        HashSet<string> permissions = await permissionProvider.GetForUserIdAsync(userId);
+        if (httpContext.Items[PermissionsItemKey] is IReadOnlySet<string> cached)
+        {
+            // A single request may check several permissions: resolve the set once per request.
+            permissions = cached;
+        }
+        else
+        {
+            try
+            {
+                using IServiceScope scope = serviceScopeFactory.CreateScope();
+                IPermissionProvider permissionProvider = scope.ServiceProvider.GetRequiredService<IPermissionProvider>();
+
+                permissions = await permissionProvider.GetForUserIdAsync(userId, httpContext.RequestAborted);
+                httpContext.Items[PermissionsItemKey] = permissions;
+            }
+            catch (Exception exception)
+            {
+                // Fail closed: never grant access when permissions cannot be resolved.
+                logger.LogError(exception, "Failed to resolve permissions for user {UserId}.", userId);
+
+                return;
+            }
+        }
 
         if (permissions.Contains(requirement.Permission))
         {

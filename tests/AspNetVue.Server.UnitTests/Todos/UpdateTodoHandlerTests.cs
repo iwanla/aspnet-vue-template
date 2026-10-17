@@ -56,7 +56,7 @@ public sealed class UpdateTodoHandlerTests : BaseHandlerTest
         // Assert
         result.IsSuccess.ShouldBeTrue();
 
-        TodoItem todoItem = await context.TodoItems.SingleAsync(t => t.Id == todoItemId);
+        TodoItem todoItem = await context.Set<TodoItem>().SingleAsync(t => t.Id == todoItemId);
         todoItem.Description.ShouldBe("Updated description");
         await dispatcher.Received().DispatchAsync(
             Arg.Is<IEnumerable<IDomainEvent>>(events => events.Any(e => e is TodoItemUpdatedDomainEvent)),
@@ -76,7 +76,7 @@ public sealed class UpdateTodoHandlerTests : BaseHandlerTest
             CreatedAt = DateTime.UtcNow
         };
 
-        context.TodoItems.Add(todoItem);
+        context.Set<TodoItem>().Add(todoItem);
         await context.SaveChangesAsync();
 
         return todoItem.Id;

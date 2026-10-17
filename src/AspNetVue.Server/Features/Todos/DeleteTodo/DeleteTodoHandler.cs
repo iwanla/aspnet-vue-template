@@ -15,7 +15,7 @@ internal sealed class DeleteTodoHandler(
 {
     public async Task<Result> Handle(DeleteTodoCommand command, CancellationToken cancellationToken)
     {
-        TodoItem? todoItem = await context.TodoItems
+        TodoItem? todoItem = await context.Set<TodoItem>()
             .SingleOrDefaultAsync(t => t.Id == command.TodoItemId && t.UserId == userContext.UserId, cancellationToken);
 
         if (todoItem is null)
@@ -23,7 +23,7 @@ internal sealed class DeleteTodoHandler(
             return Result.Failure(TodoItemErrors.NotFound(command.TodoItemId));
         }
 
-        context.TodoItems.Remove(todoItem);
+        context.Set<TodoItem>().Remove(todoItem);
 
         todoItem.Raise(new TodoItemDeletedDomainEvent(todoItem.Id));
 

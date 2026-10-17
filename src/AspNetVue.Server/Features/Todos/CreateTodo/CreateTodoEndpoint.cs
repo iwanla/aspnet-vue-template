@@ -37,6 +37,6 @@ public sealed class CreateTodoEndpoint : IEndpoint
         .Produces(StatusCodes.Status401Unauthorized)
         .Produces(StatusCodes.Status403Forbidden)
         .WithIdempotency()
-        .RequireAuthorization();
+        .HasPermission(TodosPermissions.TodosCreate);
     }
 }

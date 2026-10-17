@@ -19,7 +19,7 @@ internal sealed class GetTodoByIdHandler(
 
         GetTodoByIdResponse? todo = await cache.GetOrCreateAsync(
             TodoCacheKeys.ById(userId, query.TodoItemId),
-            async cancellation => await context.TodoItems
+            async cancellation => await context.Set<TodoItem>()
                 .Where(todoItem => todoItem.Id == query.TodoItemId && todoItem.UserId == userId)
                 .Select(todoItem => new GetTodoByIdResponse
                 {

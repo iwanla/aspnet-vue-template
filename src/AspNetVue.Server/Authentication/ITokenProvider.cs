@@ -1,4 +1,4 @@
-using AspNetVue.Server.Features.Users;
+using AspNetVue.Server.Database.Entities.Identity;
 
 namespace AspNetVue.Server.Authentication;
 

@@ -36,4 +36,25 @@ public class LayerTests : BaseTest
 
         result.IsSuccessful.ShouldBeTrue();
     }
+
+    [Fact]
+    public void InfrastructureNamespaces_Should_NotDependOn_Features()
+    {
+        // Authentication/ + Authorization/ are consumed by features, never the other way around:
+        // the dependency points Features -> Authentication/Authorization/Database/Common.
+        TestResult result = Types.InAssembly(WebApiAssembly)
+            .That()
+            .ResideInNamespace("AspNetVue.Server.Authentication")
+            .Or()
+            .ResideInNamespace("AspNetVue.Server.Authorization")
+            .Or()
+            .ResideInNamespace("AspNetVue.Server.Database")
+            .Or()
+            .ResideInNamespace("AspNetVue.Server.Common")
+            .ShouldNot()
+            .HaveDependencyOn("AspNetVue.Server.Features")
+            .GetResult();
+
+        result.IsSuccessful.ShouldBeTrue();
+    }
 }

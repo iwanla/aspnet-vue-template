@@ -3,6 +3,7 @@ using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common;
 using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
+using AspNetVue.Server.Database.Entities.Identity;
 using AspNetVue.Server.Features.Users;
 
 namespace AspNetVue.Server.Features.Todos.CreateTodo;
@@ -41,7 +42,7 @@ internal sealed class CreateTodoHandler(
 
         todoItem.Raise(new TodoItemCreatedDomainEvent(todoItem.Id));
 
-        context.TodoItems.Add(todoItem);
+        context.Set<TodoItem>().Add(todoItem);
 
         await context.SaveChangesAsync(cancellationToken);
 

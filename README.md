@@ -36,9 +36,9 @@ from scaffolding; `wwwroot/` is regenerated via `bun run build` in the client.
 ├── src/
 │   ├── AspNetVue.Server/            ← ASP.NET Core (vertical-slice port)
 │   │   ├── Authentication/      ← JWT, password hasher, token provider, user context
-│   │   ├── Authorization/      ← permission policy/handler/provider
+│   │   ├── Authorization/      ← RBAC: policy/handler/provider, permission catalog + seeder
 │   │   ├── Common/             ← Result/Error, behaviors, endpoints, middleware, messaging
-│   │   ├── Database/           ← DbContext, configs, migrations
+│   │   ├── Database/           ← DbContext, Entities/Identity/, configs, migrations
 │   │   ├── Features/Todos|Users/ ← vertical slices (endpoint + handler + validator)
 │   │   ├── Integrations/Email|Cache/ ← IEmailSender, HybridCache + Redis option
 │   │   ├── Program.cs / DependencyInjection.cs
@@ -47,10 +47,14 @@ from scaffolding; `wwwroot/` is regenerated via `bun run build` in the client.
 ├── tests/
 │   ├── AspNetVue.Server.UnitTests/         ← handler tests (InMemory + NSubstitute)
 │   ├── AspNetVue.Server.IntegrationTests/  ← Testcontainers postgres:17
-│   └── AspNetVue.Server.ArchitectureTests/ ← NetArchTest (sealed handlers/endpoints)
+│   └── AspNetVue.Server.ArchitectureTests/ ← NetArchTest (sealed handlers/endpoints, layering)
 ├── README.md / ARCHITECTURE.md   ← architecture + decisions (no ADR folder)
 └── docker-compose.yml                  ← app + postgres + seq
 ```
+
+Features depend on `Authentication/`, `Authorization/`, `Database/`, `Common/` — never the
+reverse. Identity entities used by that infrastructure live in `Database/Entities/Identity/`
+(see `ARCHITECTURE.md` §11).
 
 ## Run (dev)
 
@@ -77,7 +81,7 @@ cd ../AspNetVue.Server && dotnet run    # auto-runs `bun run dev` via SpaProxy
 | POST | `api/v1/users/login` | anon, rate-limit `authentication` → `{ accessToken, refreshToken }` |
 | POST | `api/v1/users/refresh-token` | anon, rate-limit `authentication` |
 | GET | `api/v1/users/{userId}` | permission `users:access` |
-| POST / GET / GET{id} / PUT / DELETE / PUT complete / POST copy | `api/v1/todos…` | JWT |
+| POST / GET / GET{id} / PUT / DELETE / PUT complete / POST copy | `api/v1/todos…` | permissions `todos:read/create/update/delete` |
 | GET | `api/health` | anon (Npgsql check) |
 | GET | `/scalar/v1`, `/openapi/v1.json` | dev only |
 
@@ -91,10 +95,33 @@ To add v2, declare it on the version set in `Program.cs`, map the relevant
 endpoints with `.MapToApiVersion(2)`, and register a `v2` OpenAPI document.
 Existing endpoints remain v1 unless explicitly mapped to another version.
 
+## Authorization (RBAC)
+
+Permission-based: the database is the source of truth, the JWT only carries identity (`sub`).
+
+- Model: `users —< user_roles >— roles —< role_permissions >— permissions`.
+- The entities live in `Database/Entities/Identity/` (`User`, `RefreshToken`, `Role`,
+  `Permission`, `UserRole`, `RolePermission`) because `Authentication/` and `Authorization/`
+  consume them; features use them, not the other way around (`ARCHITECTURE.md` §11).
+- Permissions are constants owned by the feature that declares them
+  (`Features/Todos/TodosPermissions.cs`, `Features/Users/UsersPermissions.cs`, format
+  `<feature>:<action>`) and collected by assembly scan (`IPermissionCatalog`).
+- `AuthorizationDataInitializer` migrates in Development and seeds the catalog on every start:
+  the `admin` role gets every permission, `user` gets `todos:*`.
+- Bootstrap: the first registrant additionally becomes `admin`, every registrant gets `user`
+  (`RegisterHandler`). Endpoints check permissions only (`.HasPermission(...)`); handlers never
+  check roles.
+- `IPermissionProvider` reads a user's permissions in one query and caches them for 2 minutes
+  (`auth:permissions:<userId>`); access is denied when permissions cannot be resolved.
+
+Add a permission: create `Features/{Domain}/{Domain}Permissions.cs` + an `IPermissionCatalog`,
+call `.HasPermission(...)` in the endpoint, and restart — the seeder reconciles the database.
+Full rules: `ARCHITECTURE.md` §10 (RBAC) and §11 (layering).
+
 ## Tests
 
 ```bash
-dotnet test                        # unit (28) + architecture (2)
+dotnet test                        # unit (38) + architecture (3)
 dotnet test tests/AspNetVue.Server.IntegrationTests  # needs Docker Hub (pulls postgres:17)
 ```
 

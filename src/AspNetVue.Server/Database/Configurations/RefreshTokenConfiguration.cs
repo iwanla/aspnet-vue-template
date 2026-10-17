@@ -1,4 +1,4 @@
-using AspNetVue.Server.Features.Users;
+using AspNetVue.Server.Database.Entities.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
