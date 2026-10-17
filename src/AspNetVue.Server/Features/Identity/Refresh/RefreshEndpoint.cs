@@ -9,7 +9,7 @@ public sealed class RefreshEndpoint : IEndpoint
 {
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPost("identity/refresh-token", async (
+        app.MapPost("identity/refresh", async (
             RefreshRequest request,
             ICommandHandler<RefreshCommand, AccessTokensResponse> handler,
             CancellationToken cancellationToken) =>

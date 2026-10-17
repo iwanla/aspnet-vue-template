@@ -79,7 +79,7 @@ cd ../AspNetVue.Server && dotnet run    # auto-runs `bun run dev` via SpaProxy
 |---|---|---|
 | POST | `api/v1/identity/register` | anon, rate-limit `authentication` |
 | POST | `api/v1/identity/login` | anon, rate-limit `authentication` → `{ accessToken, refreshToken }` |
-| POST | `api/v1/identity/refresh-token` | anon, rate-limit `authentication` |
+| POST | `api/v1/identity/refresh` | anon, rate-limit `authentication` |
 | GET | `api/v1/identity/me` | login (any authenticated user) → profil + permissions efektif |
 | GET | `api/v1/users/{userId}` | permission `users:access` |
 | POST / GET / GET{id} / PUT / DELETE / PUT complete / POST copy | `api/v1/todos…` | permissions `todos:read/create/update/delete` |

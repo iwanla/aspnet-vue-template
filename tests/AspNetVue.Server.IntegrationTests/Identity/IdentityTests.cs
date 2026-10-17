@@ -57,7 +57,7 @@ public sealed class IdentityTests(IntegrationTestWebAppFactory factory) : BaseIn
 
         // Act
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
-            "api/v1/identity/refresh-token",
+            "api/v1/identity/refresh",
             new { refreshToken = tokens.RefreshToken });
 
         // Assert
@@ -72,7 +72,7 @@ public sealed class IdentityTests(IntegrationTestWebAppFactory factory) : BaseIn
     {
         // Act
         HttpResponseMessage response = await HttpClient.PostAsJsonAsync(
-            "api/v1/identity/refresh-token",
+            "api/v1/identity/refresh",
             new { refreshToken = "this-token-does-not-exist" });
 
         // Assert
