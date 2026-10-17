@@ -1,5 +1,5 @@
 using FluentValidation.TestHelper;
-using AspNetVue.Server.Features.Users;
+using AspNetVue.Server.Features.Users.Login;
 
 namespace AspNetVue.Server.UnitTests.Users;
 

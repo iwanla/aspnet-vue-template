@@ -3,7 +3,7 @@ using AspNetVue.Server.Common.Endpoints;
 using AspNetVue.Server.Common.Extensions;
 using AspNetVue.Server.Common.Messaging;
 
-namespace AspNetVue.Server.Features.Users;
+namespace AspNetVue.Server.Features.Users.Login;
 
 public sealed class LoginEndpoint : IEndpoint
 {

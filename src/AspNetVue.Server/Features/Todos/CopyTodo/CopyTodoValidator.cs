@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace AspNetVue.Server.Features.Todos;
+namespace AspNetVue.Server.Features.Todos.CopyTodo;
 
 public sealed class CopyTodoValidator : AbstractValidator<CopyTodoCommand>
 {

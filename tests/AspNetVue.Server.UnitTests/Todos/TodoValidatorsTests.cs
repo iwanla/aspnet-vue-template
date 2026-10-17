@@ -1,5 +1,7 @@
 using FluentValidation.TestHelper;
 using AspNetVue.Server.Features.Todos;
+using AspNetVue.Server.Features.Todos.CreateTodo;
+using AspNetVue.Server.Features.Todos.UpdateTodo;
 
 namespace AspNetVue.Server.UnitTests.Todos;
 

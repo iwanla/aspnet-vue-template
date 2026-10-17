@@ -1,7 +1,7 @@
 using AspNetVue.Server.Common;
 using AspNetVue.Server.Common.Messaging;
 
-namespace AspNetVue.Server.Features.Todos;
+namespace AspNetVue.Server.Features.Todos.GetTodos;
 
 public sealed record GetTodosQuery(
     Guid UserId,

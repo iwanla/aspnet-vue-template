@@ -5,7 +5,7 @@ using AspNetVue.Server.Common;
 using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
 
-namespace AspNetVue.Server.Features.Todos;
+namespace AspNetVue.Server.Features.Todos.DeleteTodo;
 
 internal sealed class DeleteTodoHandler(
     ApplicationDbContext context,

@@ -5,7 +5,7 @@ using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Features.Users;
 
-namespace AspNetVue.Server.Features.Todos;
+namespace AspNetVue.Server.Features.Todos.CreateTodo;
 
 internal sealed class CreateTodoHandler(
     ApplicationDbContext context,

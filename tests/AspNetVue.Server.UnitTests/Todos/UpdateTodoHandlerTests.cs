@@ -4,6 +4,7 @@ using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Features.Todos;
+using AspNetVue.Server.Features.Todos.UpdateTodo;
 using AspNetVue.Server.UnitTests.Abstractions;
 
 namespace AspNetVue.Server.UnitTests.Todos;

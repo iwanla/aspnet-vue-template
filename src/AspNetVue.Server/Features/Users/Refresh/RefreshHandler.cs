@@ -4,7 +4,7 @@ using AspNetVue.Server.Common;
 using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
 
-namespace AspNetVue.Server.Features.Users;
+namespace AspNetVue.Server.Features.Users.Refresh;
 
 internal sealed class RefreshHandler(
     ApplicationDbContext context,

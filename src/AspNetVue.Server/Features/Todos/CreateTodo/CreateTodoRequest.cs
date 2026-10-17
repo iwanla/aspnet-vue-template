@@ -1,4 +1,4 @@
-namespace AspNetVue.Server.Features.Todos;
+namespace AspNetVue.Server.Features.Todos.CreateTodo;
 
 public sealed class CreateTodoRequest
 {

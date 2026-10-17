@@ -6,7 +6,7 @@ using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Features.Users;
 
-namespace AspNetVue.Server.Features.Todos;
+namespace AspNetVue.Server.Features.Todos.GetTodos;
 
 internal sealed class GetTodosHandler(ApplicationDbContext context, IUserContext userContext)
     : IQueryHandler<GetTodosQuery, PagedList<GetTodosResponse>>

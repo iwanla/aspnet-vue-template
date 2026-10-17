@@ -4,7 +4,7 @@ using AspNetVue.Server.Common;
 using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
 
-namespace AspNetVue.Server.Features.Users;
+namespace AspNetVue.Server.Features.Users.GetUserByEmail;
 
 internal sealed class GetUserByEmailHandler(ApplicationDbContext context, IUserContext userContext)
     : IQueryHandler<GetUserByEmailQuery, GetUserByEmailResponse>

@@ -12,11 +12,11 @@ One public type per file, prefixed with the use-case name:
 Features/{Domain}/{UseCase}/{UseCase}{Command,Validator,Handler,Endpoint,Request,Query,Response}.cs
 ```
 
-Flat namespace `AspNetVue.Server.Features.{Domain}`. The prefix (not a sub-namespace)
-is the disambiguation mechanism: every type name is globally unique (`RegisterCommand`
-exists exactly once in the assembly), test references stay explicit, Go-to-Type
-yields one result. Trade-off: ~50 files for 11 use-cases; renaming a use-case means
-renaming the folder plus the prefixed types.
+Namespaces follow the folder structure: `AspNetVue.Server.Features.{Domain}.{UseCase}`.
+Use-case types retain their prefixes (for example, `CreateTodoCommand`) for explicit
+references and easy Go-to-Type navigation. Shared domain types stay in
+`AspNetVue.Server.Features.{Domain}`. Renaming a use-case means renaming its folder,
+namespace, and prefixed types.
 
 No MediatR: `ICommand/IQuery` are scanned by Scrutor (scoped) in
 `DependencyInjection.AddApplication()`, decorated with

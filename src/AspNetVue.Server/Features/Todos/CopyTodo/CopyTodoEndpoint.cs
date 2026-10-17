@@ -3,7 +3,7 @@ using AspNetVue.Server.Common.Endpoints;
 using AspNetVue.Server.Common.Extensions;
 using AspNetVue.Server.Common.Messaging;
 
-namespace AspNetVue.Server.Features.Todos;
+namespace AspNetVue.Server.Features.Todos.CopyTodo;
 
 public sealed class CopyTodoEndpoint : IEndpoint
 {

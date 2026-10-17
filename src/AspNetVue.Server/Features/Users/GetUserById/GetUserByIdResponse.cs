@@ -1,4 +1,4 @@
-namespace AspNetVue.Server.Features.Users;
+namespace AspNetVue.Server.Features.Users.GetUserById;
 
 public sealed record GetUserByIdResponse
 {

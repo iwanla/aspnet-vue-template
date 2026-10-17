@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace AspNetVue.Server.Features.Users;
+namespace AspNetVue.Server.Features.Users.Refresh;
 
 public sealed class RefreshValidator : AbstractValidator<RefreshCommand>
 {

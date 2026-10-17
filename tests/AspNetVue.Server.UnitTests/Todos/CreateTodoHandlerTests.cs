@@ -3,6 +3,7 @@ using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Features.Todos;
+using AspNetVue.Server.Features.Todos.CreateTodo;
 using AspNetVue.Server.Features.Users;
 using AspNetVue.Server.UnitTests.Abstractions;
 

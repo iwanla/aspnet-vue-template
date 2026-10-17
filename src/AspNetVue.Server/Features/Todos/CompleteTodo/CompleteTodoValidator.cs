@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace AspNetVue.Server.Features.Todos;
+namespace AspNetVue.Server.Features.Todos.CompleteTodo;
 
 public sealed class CompleteTodoValidator : AbstractValidator<CompleteTodoCommand>
 {

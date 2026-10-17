@@ -4,7 +4,7 @@ using AspNetVue.Server.Common;
 using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
 
-namespace AspNetVue.Server.Features.Users;
+namespace AspNetVue.Server.Features.Users.GetUserById;
 
 internal sealed class GetUserByIdHandler(ApplicationDbContext context, IUserContext userContext)
     : IQueryHandler<GetUserByIdQuery, GetUserByIdResponse>

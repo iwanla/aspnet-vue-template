@@ -1,6 +1,6 @@
 using AspNetVue.Server.Common.Messaging;
 
-namespace AspNetVue.Server.Features.Todos;
+namespace AspNetVue.Server.Features.Todos.CreateTodo;
 
 public sealed class CreateTodoCommand : ICommand<Guid>
 {
