@@ -62,7 +62,7 @@ public class LayerTests : BaseTest
     public void Features_Should_NotDependOn_EachOther()
     {
         // Features are independent vertical slices: anything shared (errors, helpers) goes to
-        // Common/, never from one feature to another (see ARCHITECTURE.md §11).
+        // Common/, never from one feature to another (see ARCHITECTURE.md: Dependency boundaries).
         string[] features = ["Todos", "Users", "Identity"];
 
         foreach (string feature in features)

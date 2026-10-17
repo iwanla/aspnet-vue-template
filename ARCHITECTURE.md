@@ -1,244 +1,302 @@
-# ARCHITECTURE
+# Application Architecture
 
-The server is a 1:1 port of the vertical-slice template (`Web.Api` → `AspNetVue.Server`)
-with minimal adaptations for SPA hosting, file conventions, `Integrations/`,
-and template distribution. The explicit list of deviations is in §8.
+## Purpose and scope
 
-## 1. Vertical slices (`Features/*`)
+This document defines application boundaries: what each layer owns, how layers
+collaborate, and where new code belongs. It describes the implemented architecture,
+not a proposed migration to a different architectural style.
 
-One public type per file, prefixed with the use-case name:
+Business workflows belong to their feature code and API documentation. Adding,
+renaming, or removing an ordinary feature should not require updating this document.
+Update it when responsibilities, dependency rules, shared contracts, execution
+semantics, or deployment boundaries change. Setup commands and operational settings
+belong in `README.md` and the root/subproject `AGENTS.md` files.
 
-```text
-Features/{Domain}/{UseCase}/{UseCase}{Command,Validator,Handler,Endpoint,Request,Query,Response}.cs
-```
+## Architectural model
 
-Namespaces follow the folder structure: `AspNetVue.Server.Features.{Domain}.{UseCase}`.
-Use-case types retain their prefixes (for example, `CreateTodoCommand`) for explicit
-references and easy Go-to-Type navigation. Shared domain types stay in
-`AspNetVue.Server.Features.{Domain}`. Renaming a use-case means renaming its folder,
-namespace, and prefixed types.
+The application has a browser client and an ASP.NET Core server. The server uses
+vertical slices: an operation's HTTP boundary, application logic, and domain-specific
+types are kept close together instead of distributed across global controller,
+service, and repository folders.
 
-No MediatR: `ICommand/IQuery` are scanned by Scrutor (scoped) in
-`DependencyInjection.AddApplication()`, decorated with
-`ValidationDecorator` (outer) → `LoggingDecorator` (inner).
-Endpoint auto-discovery via `AddEndpoints(Assembly)` + `MapEndpoints()`;
-shape: `Command/Query record` + FluentValidation `Validator` +
-`internal sealed Handler` + `sealed Endpoint : IEndpoint`.
-`Result/Result<T> + Error(code, description, ErrorType)` → `CustomResults.Problem`
-(RFC ProblemDetails: 400/404/409/500).
-
-## 2. Auth / Authz / Data
-
-- JWT Bearer (`Jwt:Secret/Issuer/Audience/ExpirationInMinutes`), PBKDF2-SHA512,
-  7-day refresh-token rotation. `IUserContext` comes from `NameIdentifier`.
-- Permission-based: `HasPermissionAttribute` / `.HasPermission(permission)` → dynamic policy
-  (`PermissionAuthorizationPolicyProvider`) → `PermissionAuthorizationHandler` →
-  `IPermissionProvider` (database + 2-minute cache). Roles/permissions are seeded at startup
-  by `AuthorizationDataInitializer` and enforced at the endpoint only. Full rules: §10.
-- Identity/access entities (`User`, `RefreshToken`, `Role`, `Permission`, `UserRole`,
-  `RolePermission`) live in `Database/Entities/Identity/`
-  (`AspNetVue.Server.Database.Entities.Identity`) because both `Authentication/` and
-  `Authorization/` consume them; feature entities stay in their feature root (§11).
-- EF Core + PostgreSQL 17, snake_case, `public` schema, domain-event dispatch
-  post-commit (`Entity` → `DomainEventsDispatcher` via Scrutor `IDomainEventHandler<>`).
-  4 bundled migrations; `ApplyMigrations()` stays commented (the `AuthorizationDataInitializer`
-  hosted service migrates in Development and always seeds).
-
-## 3. Cross-cutting
-
-- **Cache** (`Integrations/Cache/`): `HybridCache` is the only abstraction,
-  configured via `AddCacheIntegration(configuration)`. Default is L1 in-memory
-  (`Cache:Provider=Memory`, `DefaultExpirationMinutes=5`). Set
-  `Cache:Provider=Redis` + `Cache:Redis:ConnectionString` for a Redis L2
-  (`AddStackExchangeRedisCache`, `InstanceName = Cache:KeyPrefix`), failing fast
-  on an empty connection string. No custom `ICacheService`.
-  Keys are composed per feature (e.g. `Features/Todos/TodoCacheKeys.cs`).
-- **Email** (`Integrations/Email/`): `IEmailSender` + `LoggingEmailSender`
-  (moved from `Notifications/`). Sole consumer: `UserRegisteredDomainEventHandler`.
-  `Payments/`/`Storage`/real providers are deferred until needed.
-- **Idempotency**: `Idempotency-Key` header via `IdempotencyFilter`
-  (opt-in per endpoint: `.WithIdempotency()`, e.g. create todo), duplicates → 409.
-- **Rate limiting** (`Common/Extensions/RateLimitingExtensions.cs`):
-  global 100/min + `authentication` partition 10/min (register/login/refresh).
-- **Observability/logging**: conditional OTel via env
-  (`AddObservability`), Serilog (Console + Seq), security headers,
-  request-context logging, global exception handler (`AddExceptionHandler` +
-  `AddProblemDetails`).
-- **API docs**: dev-only OpenAPI + Scalar (`/openapi/v1.json`, `/scalar/v1`).
-- **Health**: `GET /health` (Npgsql check, `UIResponseWriter`).
-
-## 4. SPA hosting (adaptation outside the 1:1 port)
-
-- Dev: `dotnet run :5000` → `SpaProxyLaunchManager (bun run dev)` → Vite `:5173`
-  (HMR); Vite fetches to `/api` → Vite proxy → `:5000`
-  (no CORS). No manual `UseSpa` (automatic via `SpaHostingStartup` +
-  `spa.proxy.json` from the csproj: `SpaRoot`, `SpaProxyServerUrl`, `SpaProxyLaunchCommand`).
-- Prod: `bun run build` in the client → straight into `../AspNetVue.Server/wwwroot/`
-  (`vite.config.ts outDir`) → `dotnet publish` single artifact;
-  `UseStaticFiles` + `MapFallbackToFile(index.html)` (Vue Router history mode).
-- `wwwroot/` is a build artifact (gitignored), regenerated via the client build.
-- Client route `/status` (a page; the server health endpoint is `/api/health`).
-- All API routes live under the `/api` prefix (unlike upstream):
-  business endpoints use `api/v1/todos*` and `api/v1/users/*`, via
-  `MapEndpoints(app.MapGroup("api/v{version:apiVersion}").WithApiVersionSet(versionSet))`.
-  `Asp.Versioning.Http` reads the URL segment; all 11 endpoints explicitly map to v1.
-  The version segment is mandatory (unversioned business paths and unsupported versions return 404).
-  Health stays version-neutral at `api/health`, outside the versioned group.
-  API Explorer substitutes the version into OpenAPI paths (`/openapi/v1.json`).
-  Future versions must be declared on the version set, mapped per endpoint, and
-  registered as separate OpenAPI documents; no endpoint is implicitly upgraded.
-- Unknown `api/{**}` → `404 JSON` before the fallback,
-  never swallowed by `index.html`.
-
-## 5. Client (`src/AspNetVue.Client/`)
-
-Vue 3 + Vite + TS + Pinia + Vue Router (`src/{app,features,shared}/`).
-`vite.config.ts`: `@` alias, dev proxy to `:5000`, `outDir` into the server wwwroot.
-`bun install` stays manual after scaffolding (no built-in bun post-action).
-
-## 6. Template distribution (`dotnet new`)
-
-- Identity `aspnetvue` (`.template.config/template.json`):
-  `sourceName: AspNetVue` (namespaces, folders, slnx, vite `outDir`) +
-  derived symbol `lower_name` (compose DB name, package name, `Cache:KeyPrefix`).
-- Scaffold excludes: `bin/obj/node_modules/dist/wwwroot output/tsbuildinfo`,
-  generated `vite.config.js/.d.ts`, and `AspNetVue.Template.csproj` itself.
-- `primaryOutputs` for the 4 csproj files + NuGet restore post-action
-  (opt-out with `--skipRestore`).
-- `AspNetVue.Template.csproj` (`PackageType Template`) produces
-  `AspNetVue.Template.*.nupkg` for `dotnet new install`.
-
-## 7. Configuration & operations
-
-| Section | Keys | Default |
-|---|---|---|
-| `ConnectionStrings` | `Database` | empty (via user-secrets/env; dev points at the compose service) |
-| `Jwt` | `Secret/Issuer/Audience/ExpirationInMinutes` | empty (dev: dev secret + issuer/audience) |
-| `Cors` | `AllowedOrigins` | `[]` |
-| `RateLimiting` | `Global`, `Authentication` (`PermitLimit/WindowInSeconds`) | 100/min, 10/min |
-| `Cache` | `Provider/DefaultExpirationMinutes/KeyPrefix/Redis:ConnectionString` | Memory, 5, `aspnetvue`, empty |
-
-Ports: API `:5000`, Vite `:5173`, Seq `:8081`.
-Compose: `app` + `postgres:17` (DB `aspnetvue`) + `seq`; the app healthcheck uses `/api/health`.
-
-## 8. Deviations from upstream (the only intentional ones)
-
-1. Namespace `Web.Api*` → `AspNetVue.Server*`; compose DB `clean-architecture` → `aspnetvue`.
-2. SPA hosting (§4): csproj SpaProxy props, `UseStaticFiles` + guards + fallback,
-   Vite proxy regex, client route `/status`.
-3. One prefixed type per file (§1) — zero behavior change.
-4. `Notifications/` → `Integrations/Email/`; added `Integrations/Cache/` (§3).
-5. `Testcontainers.PostgreSql` 4.12.0 → 4.16.0 (4.12 fails restore with NU1903 on SSH.NET
-   + `TreatWarningsAsErrors`; upstream fails the same way).
-6. Template packaging (§6 + `AspNetVue.Template.csproj`).
-7. `/api` prefix on all API routes (§4; upstream has none).
-   Business routes additionally require URL-segment API versioning (`/api/v1/...`).
-8. NOT ported (not functionality): `.claude/skills`, `.github/workflows`,
-   `docker-compose.dcproj`, .NET 8/9 Dockerfiles, upstream slnx, upstream README.
-9. RBAC enforced (upstream `PermissionAuthorizationHandler` auto-succeeds any authenticated
-   user): roles/permissions tables + migration, catalog seeder, fail-closed handler, and a
-   database-backed `IPermissionProvider` with a short cache (§2, §10).
-
-## 9. Tests & rules
-
-- Unit (`UnitTests`): handler tests (real `HybridCache` via `AddHybridCache()`,
-  InMemory + NSubstitute) + `CacheServiceExtensionsTests` (default registers,
-  Redis without a connection string throws) + `Authorization/` tests
-  (`PermissionProvider` caching/invalidation, handler fail-closed + once-per-request).
-- Integration (`IntegrationTests`): `WebApplicationFactory<Program>` +
-  Testcontainers `postgres:17` (needs Docker Hub).
-  `ApiVersioningTests` verifies routing and OpenAPI without Docker or database access;
-  `AuthorizationTests` verifies 401/403/200 through the seeded roles.
-- Architecture (`ArchitectureTests`, NetArchTest): handlers + endpoints must be `sealed`;
-  `Authentication`/`Authorization`/`Database`/`Common` must not depend on `Features` (§11).
-- Build: CPM + `TreatWarningsAsErrors` (`Directory.Build.props` /
-  `Directory.Packages.props`); `dotnet build` must report 0 warnings.
-  EF Core 10 no longer writes the `// <auto-generated />` header into the migration
-  `.cs` file, so `dotnet ef migrations add` needs that header added manually — without it
-  IDE0161 (file-scoped namespace) fails the build (and therefore blocks the build-first
-  `dotnet ef migrations remove`). The Designer/snapshot files already have it.
-  EF also derives a table name from the matching `DbSet` property on `ApplicationDbContext`:
-  when a feature entity has no `DbSet`, set the table explicitly in the feature configuration
-  (`TodoItemConfiguration.ToTable("todo_items")`) so the physical table does not move.
-
-## 10. Server rules: permission-based authorization (RBAC)
-
-The database is the source of truth; the JWT only carries identity (`sub`), never permissions.
-
-Model (entities in `Database/Entities/Identity/`, enforcement in `Authorization/`):
-`Users —< UserRoles >— Roles —< RolePermissions >— Permissions`.
-Roles are administrative groupings only — code always checks permissions, never role names.
-
-1. Permission names are constants owned by the feature that declares them
-   (`Features/Todos/TodosPermissions.cs`, `Features/Users/UsersPermissions.cs`), format
-   `<feature>:<action>` (e.g. `todos:create`). Never inline the string at the call site.
-2. `Authorization/` must not reference `Features/`. Each feature exposes an
-   `IPermissionCatalog`; the catalog is collected by assembly scan (Scrutor) and the
-   dependency points feature → authorization (§11).
-3. `AuthorizationSeeder` reconciles the database with the catalog at startup: it inserts new
-   permissions, grants the `admin` role every permission, and grants each role listed in
-   `PermissionDefinition.DefaultRoles` its own. Idempotent, safe on every start.
-4. Permissions are checked only at the endpoint (`.HasPermission(...)`); handlers never check
-   roles or permissions.
-5. `IPermissionProvider.GetForUserIdAsync` loads a user's permissions in one query
-   (join + `Distinct` + `AsNoTracking`), cached for 2 minutes under `auth:permissions:<userId>`
-   (HybridCache, tag `auth:permissions`). A cache failure falls back to the database.
-6. `InvalidateAsync(userId)` (or `RemoveByTagAsync("auth:permissions")`) must be called when a
-   user's roles/permissions change; the TTL is only a safety net.
-7. Fail closed: unauthenticated users are rejected and a lookup error denies access — access is
-   never granted when permissions cannot be resolved.
-8. `PermissionAuthorizationHandler` resolves the permission set once per request and memoizes it
-   in `HttpContext.Items`.
-9. `IPermissionProvider` is registered `Scoped` behind its interface so it can be faked in tests.
-10. Multi-tenant (later): add the tenant column to `UserRoles` and filter the permission query
-    by it.
-11. Bootstrap: every registrant gets the `user` role and the first one additionally gets `admin`
-    (`RegisterHandler`). Seeded roles: `admin` (all permissions), `user` (`todos:*`).
-12. `GET /api/v1/identity/me` requires authentication but no permission and returns the caller's
-    profile plus its effective permission names, so a client can hide UI it may not use. It reads
-    the same `IPermissionProvider`, so the JWT still carries no permissions and the endpoint
-    authority stays on the server.
-
-JWT claims are only acceptable for a small, rarely changing permission set with short-lived
-tokens (under 15 minutes); this template always reads from the database + cache.
-
-## 11. Server rules: layering and entity placement
-
-Infrastructure namespaces (`Authentication/`, `Authorization/`, `Database/`, `Common/`) are
-consumed by features, never the other way around:
+The layers below are **logical responsibilities**, not separate .NET projects.
+Endpoints, handlers, domain types, and infrastructure currently share one server
+assembly. In particular, handlers use EF Core directly; this is not a strict Clean
+Architecture arrangement with a persistence-independent application project.
 
 ```text
-Features ─► Authentication ─► Database ─► Common
-Features ─► Authorization  ─► Database
-Features ─► Database
+Browser client -- HTTP/JSON --> Server presentation boundary
+                                      |
+                                Application handler
+                                  /       |       \
+                         Domain types  Persistence  Integration services
 ```
 
-1. An entity read by cross-feature infrastructure lives in `Database/Entities/Identity/`
-   (namespace `AspNetVue.Server.Database.Entities.Identity`): `User`, `RefreshToken`, `Role`,
-   `Permission`, `UserRole`, `RolePermission`. An entity used by a single feature stays in that
-   feature root (`Features/Todos/TodoItem.cs`).
-2. Features may use the identity entities, and hold use cases only — never entity definitions.
-   `Features/Identity/` owns the credential/token lifecycle and the caller's own session
-   (`Register`, `Login`, `Refresh`, `Me`); `Features/Users/` owns the user-record read model
-   (`GetUsers`, `GetUserById`).
-3. EF configurations follow their entity: identity configurations stay in
-   `Database/Configurations/`, a feature configuration lives in the feature root
-   (`Features/Todos/TodoItemConfiguration.cs`). `ApplyConfigurationsFromAssembly` finds both, so
-   `Database/` never references `Features/`.
-4. `ApplicationDbContext` declares `DbSet<>` only for entities it is allowed to reference
-   (identity/access). Feature entities are reached with `context.Set<TodoItem>()` (or a
-   feature-owned extension), not a `DbSet` property.
-5. Identity entities stay minimal (`Id`, `Email`, `PasswordHash`, …). Feature-specific profile
-   data goes into the feature's own entity keyed by `UserId`; columns are not added to `User`.
-6. Enforced by `ArchitectureTests`: types in `Authentication`/`Authorization`/`Database`/`Common`
-   must not depend on `AspNetVue.Server.Features`.
-7. An error used by more than one feature lives in `Common/Errors/` (`UserErrors` is reported by
-   the Todos ownership checks, the Users profile lookups, and the Identity login attempt). An
-   error a single feature owns stays with it (`Features/Identity/IdentityErrors.cs`,
-   `Features/Todos/TodoItemErrors.cs`). A feature never references another feature.
-8. A route prefix matches its feature folder (`identity/register`, `users/{userId}`), so renaming
-   or splitting a feature is an API change: update `README.md`, the OpenAPI tag
-   (`Common/Endpoints/Tags.cs`), and the integration tests together.
+The composition root wires these responsibilities together. Authentication,
+authorization, validation, logging, and error translation support the flow without
+owning individual business processes.
 
-Rule of thumb: if deleting a feature broke `Authorization/`'s compilation, the entity was not
-owned by that feature.
+## Dependency boundaries
+
+The following are permitted dependency directions, not an exhaustive class graph:
+
+```text
+Composition root --> Features and shared infrastructure registrations
+Features         --> Authentication, Authorization, Database, Integrations, Common
+Authentication   --> Database, Common
+Authorization    --> Authentication, Database, Common
+Database         --> Common
+```
+
+- A feature must not reference another feature's types. Shared errors/contracts
+  belong in a feature-independent location only when genuinely shared.
+- `Authentication`, `Authorization`, `Database`, and `Common` must not reference
+  `Features`. Generic contracts and assembly scanning let infrastructure consume
+  feature implementations without importing their concrete types.
+- Integration adapters should remain feature-independent; application handlers
+  supply business inputs and decide when to invoke them.
+- `Common` must not become a service locator or a container for business workflows.
+- Client/server interaction is through HTTP contracts, not shared runtime objects
+  or direct browser access to persistence.
+
+Domain types are kept local to their owner; logical layering does not imply that
+every domain needs another assembly, service abstraction, or repository wrapper.
+
+## Composition root
+
+**Location:** `Program.cs`, `DependencyInjection.cs`.
+
+The composition root selects implementations, configures lifetimes, installs
+cross-cutting services, and connects routes and middleware. It must not implement
+business workflows.
+
+- `AddApplication()` discovers scoped command/query handlers, validators, and
+  domain-event handlers, then applies handler decorators.
+- `AddPresentation()` configures HTTP-facing services such as exception handling
+  and API versioning.
+- `AddInfrastructure()` connects persistence, authentication, authorization, and
+  integrations to configuration.
+- Endpoint and permission-catalog discovery allows new slices to participate
+  without adding a per-feature branch to startup code.
+
+Shared services depend on contracts or generic discovery mechanisms. Their source
+code should remain unchanged when an ordinary feature is added or removed.
+
+## Presentation boundary
+
+**Location:** feature-owned endpoint/request/response types; shared HTTP mechanisms
+in `Common/Endpoints`, `Common/Extensions`, and middleware.
+
+The presentation boundary owns HTTP concerns: binding input, declaring routes,
+version metadata and access requirements, invoking a handler, and translating its
+result into an HTTP response. It must not own persistence operations or duplicate
+the handler's business decisions.
+
+Endpoints implement `IEndpoint` and are discovered by assembly scan. They resolve
+`ICommandHandler` or `IQueryHandler` directly rather than sending through MediatR.
+Handlers return `Result`/`Result<T>`; endpoints translate expected failures through
+`CustomResults.Problem`. Unexpected exceptions use the global exception handler.
+Authentication challenges and authorization failures remain framework concerns.
+
+The host groups business endpoints under a versioned `/api` boundary. Health is
+unversioned at `/api/health`. Unknown API routes return JSON 404s rather than the
+SPA document; non-API navigation may use the client-side routing fallback.
+Introducing an API version is an explicit host/endpoint/documentation decision,
+not a side effect of adding a feature.
+
+## Application layer
+
+**Location:** `Features/{Domain}/{UseCase}/`; messaging and decorator contracts in
+`Common/Messaging` and `Common/Behaviors`.
+
+An application handler coordinates one operation: validate business preconditions,
+obtain the current user's identity when needed, load state, invoke domain behavior,
+persist changes, invoke integrations, and return an outcome. It should not construct
+HTTP responses, read transport headers, or make decisions about UI rendering.
+
+- Commands express state-changing intent; queries express read intent and project
+  data into response models. They use the same persistence infrastructure; separate
+  read/write databases are not part of this architecture.
+- FluentValidation validators belong to the operation and check command input.
+  State-dependent invariants and ownership checks still belong in handlers/domain
+  behavior; input validation alone does not establish permission to access a record.
+- The registered command chain is `Logging -> Validation -> Handler`. Logging is
+  registered after validation and wraps it. Queries have logging decoration but
+  no automatic validation decorator.
+- An operation may use `ApplicationDbContext` and `HybridCache` directly. Do not
+  describe these handlers as infrastructure-independent or introduce a mandatory
+  repository layer that the application does not have.
+
+Use-case-prefixed types live together under `{Domain}/{UseCase}`. Supporting
+domain-owned types shared by that domain's operations live at the domain root.
+Neither the host nor shared infrastructure should import those concrete types.
+
+## Domain ownership and shared kernel
+
+**Locations:** `Features/{Domain}/` for domain-owned types;
+`Database/Entities/Identity/` for shared identity/access entities; `Common/` for
+feature-independent foundations.
+
+Domain entities and events represent state and business meaning. Handlers coordinate
+them; endpoints translate transport concerns. Domain behavior should not depend on
+HTTP context, client components, or provider-specific integration details.
+
+Ownership determines placement:
+
+| Type of concern | Owner and placement |
+| --- | --- |
+| Entity, event, error, or cache-key scheme used by one domain | That domain's feature root. |
+| EF mapping for a feature entity | Beside that entity, discovered through configuration scanning. |
+| Identity/access entity needed by shared authentication or authorization | `Database/Entities/Identity/`; keep it minimal. |
+| Feature-specific data about a user | A feature-owned entity keyed by user ID, not additional business fields on the shared identity entity. |
+| Error used across feature boundaries | `Common/Errors/`, without importing feature types. |
+| Generic result, event, time, or messaging contract | `Common/`, without business workflow knowledge. |
+
+Do not move business logic into shared infrastructure merely to make it callable
+from another feature. A new cross-feature collaboration requires an explicit
+contract and dependency decision, not a direct reference to another feature's
+handler or entity.
+
+## Persistence and domain events
+
+**Location:** `Database/`, with feature entity mappings owned by their features.
+
+`ApplicationDbContext` owns EF persistence orchestration, model discovery, and
+domain-event dispatch after saving. PostgreSQL is the durable source of truth;
+migrations describe versioned schema transitions.
+
+The context exposes named DbSets only for shared identity/access entities. Handlers
+use `context.Set<T>()` for feature entities so `Database` does not reference
+`Features`. `ApplyConfigurationsFromAssembly` discovers both shared and
+feature-owned mappings. Feature mappings must explicitly preserve intended table
+names rather than relying on a feature DbSet property to provide them.
+
+The event flow is:
+
+```text
+Entity raises event -> DbContext extracts/clears pending events
+                    -> EF SaveChangesAsync succeeds
+                    -> Dispatcher resolves handlers in new scopes and awaits them
+```
+
+This is in-process, post-save dispatch, not a transactional outbox or durable queue.
+Event handlers do not share the originating context's unit of work. If dispatch
+fails after the database save succeeds, persisted data is not automatically rolled
+back, and delivery/retry is not guaranteed. Do not rely on it for atomic external
+side effects without changing the persistence/delivery design explicitly.
+
+## Authentication and authorization
+
+**Locations:** `Authentication/`, `Authorization/`; credential workflows remain
+application use cases rather than infrastructure responsibilities.
+
+Authentication establishes identity. Token/password mechanisms live behind shared
+interfaces; application code obtains the caller through `IUserContext` rather than
+parsing HTTP claims independently. JWTs carry identity, not permission grants.
+
+Authorization decides whether an identity has a capability:
+
+```text
+Endpoint permission metadata -> Dynamic policy -> Authorization handler
+                            -> Permission provider -> Cache / database
+```
+
+- Features own permission constants and implement `IPermissionCatalog` using shared
+  `PermissionDefinition` contracts. Assembly discovery keeps `Authorization`
+  independent of concrete features.
+- The database holds role membership and permission grants. Roles group grants;
+  endpoints check permissions, not role names. Record ownership and business
+  preconditions remain application responsibilities even after a permission passes.
+- Permission resolution is memoized per request and cached across requests.
+  Membership/grant mutations must invalidate affected permission cache entries;
+  expiration is a fallback freshness bound, not a substitute for invalidation.
+- Permission lookup failures deny access. The current provider uses HybridCache
+  directly; it has no separate explicit cache-failure-to-database fallback path.
+- Startup seeding adds missing catalog permissions and grants. Removing a catalog
+  entry does not by itself revoke persisted grants or delete permissions.
+
+The startup initializer applies migrations only in Development and attempts seeding
+on startup. It logs and catches initialization failures, so a running host is not
+proof of a successfully initialized database. Production migration/configuration
+is a deployment responsibility.
+
+## Integrations and cross-cutting infrastructure
+
+**Locations:** `Integrations/` for adapters/configuration; `Common/` for shared
+execution mechanisms. Business decisions about using them remain with the caller.
+
+| Concern | Responsibility and boundary |
+| --- | --- |
+| Cache | HybridCache is the shared API, with memory caching and optional Redis backing. Configuration belongs to the integration; key ownership, authorization-safe scoping, and invalidation belong to the data owner. Cache is not the durable source of truth. |
+| Email | Application code uses `IEmailSender`; delivery-provider details stay behind its implementation. Logging delivery is not a guarantee of external message delivery. |
+| Idempotency | An opt-in endpoint filter remembers supplied keys and rejects repeats. It is cache-backed duplicate rejection, not durable exactly-once processing or response replay. The marker is written before the operation finishes. |
+| Rate limiting | Host/middleware policies protect request capacity; limits do not replace authentication, permissions, or business rules. |
+| Observability | Structured/request logging, handler decorators, and optional telemetry report execution; they must not become workflow dependencies. |
+| Exception handling | The HTTP boundary translates unexpected failures; expected application outcomes use `Result`/`Error`. |
+
+New providers should implement the relevant integration boundary and be wired at
+composition time, rather than embedding provider-specific behavior into endpoints.
+
+## Client layers and hosting boundary
+
+**Location:** `src/AspNetVue.Client/`.
+
+| Boundary | Responsibility | Must not own |
+| --- | --- | --- |
+| Bootstrap (`src/main.ts`) | Create the app and install shared plugins. | Feature workflows. |
+| App (`src/app/`) | Application shell, routing composition, and global styling. | Feature-specific business behavior. |
+| Features (`src/features/{feature}/`) | Views, local presentation state, component contracts, and feature-specific API interactions. | Server-side authorization or database rules. |
+| Shared (`src/shared/`) | Feature-independent transport/UI utilities and reusable logic. | Dependencies on concrete feature implementations. |
+
+Keep state near the UI that owns it; shared state is justified by consumers across
+component boundaries, not by a requirement to put all state in a global store.
+Typed API models describe expectations but do not validate JSON at runtime.
+Client permissions control presentation only; the server remains authoritative.
+
+Development uses the client dev server's `/api` proxy to reach the API. Production
+builds client assets into server `wwwroot`, then the server serves static files and
+the history-routing fallback. This shares a deployment artifact, not business
+logic. `wwwroot` is generated output; publishing the server does not itself build
+the client.
+
+## Extending the application without changing its architecture
+
+For an ordinary use case, add its endpoint, messages, handler, validator, and response
+types within the owning feature. Add domain types, mappings, permission catalogs,
+and integration calls only where that feature needs them. Generic discovery should
+connect them without feature-specific changes to shared infrastructure.
+
+For the implementation recipe and complete command/query templates, read
+[Feature Development Guide](doc/references/feature-development.md).
+
+Changing a workflow, granting a new capability, adding a table, or adding a page
+does not by itself change these layer responsibilities. Document workflow details
+with the feature/API, not as an inventory in this document.
+
+Revisit this architecture when introducing a new dependency direction, shared
+cross-feature contract, deployment process boundary, persistence abstraction,
+authorization model, or transaction/event-delivery guarantee. Document what boundary
+changed, why it changed, and how enforcement changes with it.
+
+## Verification and source of truth
+
+- Architecture tests enforce sealed endpoint/handler types, infrastructure-to-feature
+  dependency prohibitions, and isolation between the features listed by the test.
+  The feature list is currently explicit; adding a feature requires extending that
+  coverage. These tests do not enforce every responsibility described above.
+- Unit tests verify application/service behavior with controlled dependencies.
+  PostgreSQL integration tests verify relational behavior and HTTP/security wiring;
+  InMemory tests do not establish production persistence semantics.
+- Client checks run independently of the .NET solution. Build and test commands,
+  tooling quirks, and environment prerequisites live in the relevant `AGENTS.md`.
+
+Implementation anchors:
+
+| Base path | Files / directories | Source of truth for |
+| --- | --- | --- |
+| `src/AspNetVue.Server/` | `Program.cs`, `DependencyInjection.cs` | Composition, discovery, and decorator order. |
+| `src/AspNetVue.Server/` | `Common/Endpoints/`, `Common/Messaging/`, `Common/Behaviors/` | Transport-to-application contracts and shared execution. |
+| `src/AspNetVue.Server/` | `Database/ApplicationDbContext.cs`, `Database/DomainEventsDispatcher.cs` | Persistence and event-delivery semantics. |
+| `src/AspNetVue.Server/` | `Authorization/` | Policy resolution, permission caching, and catalog initialization. |
+| `src/AspNetVue.Client/` | `src/main.ts`, `src/app/`, `vite.config.ts` | Client composition and hosting boundary. |
+| `tests/AspNetVue.Server.ArchitectureTests/` | `Layers/LayerTests.cs` | Executable dependency rules and their current coverage. |

@@ -58,9 +58,13 @@ Paths are relative to this project. `{Domain}` and `{UseCase}` are placement pat
 
 - Handlers and `IEndpoint` implementations are assembly-scanned and must be sealed. Return `Result`/`Result<T>` from handlers and map failures with `CustomResults.Problem` at endpoints.
 - Keep use-case prefixes on types, such as `CreateTodoCommand`, `CreateTodoHandler`, and `CreateTodoEndpoint`, under `Features/{Domain}/{UseCase}`.
-- Features cannot reference each other; `Authentication`, `Authorization`, `Database`, and `Common` cannot reference features (see root `ARCHITECTURE.md` §§1, 10–11).
+- Features cannot reference each other; `Authentication`, `Authorization`, `Database`, and `Common` cannot reference features (see root `ARCHITECTURE.md`, “Dependency boundaries” and “Domain ownership and shared kernel”).
 - Feature entities/configurations stay in their feature; use `context.Set<T>()`, not feature `DbSet` properties in `ApplicationDbContext`. Preserve table names explicitly. Shared identity entities belong in `Database/Entities/Identity`.
-- Business routes are relative to `/api/v1` and use `.MapToApiVersion(1)`; health stays `/api/health`. Preserve API JSON 404s before the SPA fallback. Update README, OpenAPI tags, and integration tests for route changes.
+- Business routes are relative to `/api/v1` and use `.MapToApiVersion(1)`; health stays `/api/health`. Preserve API JSON 404s before the SPA fallback. Update API/OpenAPI documentation and integration tests for route changes; update README only when template usage/setup changes.
+
+## Feature implementation guide
+
+- Before creating or changing a feature/use case, read [`doc/references/feature-development.md`](../../doc/references/feature-development.md) from the repository root. It provides file responsibilities, command/query/endpoint templates, discovery rules, security checks, and verification steps; do not infer the pattern by copying a feature blindly.
 
 ## Testing instructions
 

@@ -18,16 +18,17 @@ Use these boundaries when deciding where a change belongs:
 | `Directory.Packages.props` | Central NuGet version ownership; do not scatter versions across projects. |
 | `docker-compose.yml` | Local service topology, networking, ports, and persistent volumes. |
 | `ARCHITECTURE.md` | Cross-cutting design decisions and dependency rules; keep detailed rationale here rather than expanding agent instructions. |
+| `doc/references/` | Implementation recipes for recurring development tasks; `feature-development.md` explains how to build server features/use cases. |
 
 ## Scope and setup
 
 - Use .NET 10 SDK and Bun 1.x. Scaffolding restores NuGet, not Bun dependencies.
 - Subproject instructions: `src/AspNetVue.Server/AGENTS.md` and `src/AspNetVue.Client/AGENTS.md`. For changes under `tests/`, also read the server instructions; read both subproject files when changing API/client contracts.
-- `ARCHITECTURE.md` §§1, 9–11 documents slice conventions, migration quirks, authorization, and entity placement.
+- `ARCHITECTURE.md` documents layer responsibilities, dependency boundaries, persistence/event semantics, and extension rules; tooling quirks belong in subproject instructions.
 
 ## Cross-project verification
 
-- From the repo root: `dotnet build AspNetVue.slnx`; `dotnet test AspNetVue.slnx`. The test command includes Docker-backed integration tests, despite the README's unit-only comment.
+- From the repo root: `dotnet build AspNetVue.slnx`; `dotnet test AspNetVue.slnx`. The test command includes Docker-backed integration tests.
 - The .NET solution does not build/check the client. In `src/AspNetVue.Client`, run `bun run type-check` and `bun run build` separately.
 - Run the client build before `dotnet publish`: publishing does not build the SPA. Vite empties and writes server `wwwroot`; never keep source files there.
 - NuGet versions belong in `Directory.Packages.props`, not individual `.csproj` files. Analyzer and `.editorconfig` violations fail .NET builds.
