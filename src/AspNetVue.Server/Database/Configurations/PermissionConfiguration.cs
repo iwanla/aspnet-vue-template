@@ -12,6 +12,6 @@ internal sealed class PermissionConfiguration : IEntityTypeConfiguration<Permiss
 
         builder.Property(permission => permission.Name).HasMaxLength(200);
 
-        builder.HasIndex(permission => permission.Name).IsUnique();
+        builder.HasIndex(permission => permission.Name).IsUnique().HasFilter("deleted_at IS NULL");
     }
 }

@@ -28,9 +28,8 @@ public sealed class CreateTodoHandlerTests : BaseHandlerTest
         await using ApplicationDbContext context = CreateDbContext();
         IUserContext userContext = Substitute.For<IUserContext>();
         userContext.UserId.Returns(Guid.NewGuid());
-        IDateTimeProvider dateTimeProvider = Substitute.For<IDateTimeProvider>();
 
-        var handler = new CreateTodoHandler(context, dateTimeProvider, userContext);
+        var handler = new CreateTodoHandler(context, userContext);
 
         Result<Guid> result = await handler.Handle(Command, CancellationToken.None);
 
@@ -44,9 +43,8 @@ public sealed class CreateTodoHandlerTests : BaseHandlerTest
         await using ApplicationDbContext context = CreateDbContext();
         IUserContext userContext = Substitute.For<IUserContext>();
         userContext.UserId.Returns(UserId);
-        IDateTimeProvider dateTimeProvider = Substitute.For<IDateTimeProvider>();
 
-        var handler = new CreateTodoHandler(context, dateTimeProvider, userContext);
+        var handler = new CreateTodoHandler(context, userContext);
 
         Result<Guid> result = await handler.Handle(Command, CancellationToken.None);
 
@@ -71,10 +69,8 @@ public sealed class CreateTodoHandlerTests : BaseHandlerTest
 
         IUserContext userContext = Substitute.For<IUserContext>();
         userContext.UserId.Returns(UserId);
-        IDateTimeProvider dateTimeProvider = Substitute.For<IDateTimeProvider>();
-        dateTimeProvider.UtcNow.Returns(DateTime.UtcNow);
 
-        var handler = new CreateTodoHandler(context, dateTimeProvider, userContext);
+        var handler = new CreateTodoHandler(context, userContext);
 
         Result<Guid> result = await handler.Handle(Command, CancellationToken.None);
 

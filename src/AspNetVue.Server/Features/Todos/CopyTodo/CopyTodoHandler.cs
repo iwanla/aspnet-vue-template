@@ -10,7 +10,6 @@ namespace AspNetVue.Server.Features.Todos.CopyTodo;
 
 internal sealed class CopyTodoHandler(
     ApplicationDbContext context,
-    IDateTimeProvider dateTimeProvider,
     IUserContext userContext)
     : ICommandHandler<CopyTodoCommand, Guid>
 {
@@ -44,8 +43,7 @@ internal sealed class CopyTodoHandler(
             Priority = existingTodo.Priority,
             DueDate = existingTodo.DueDate,
             Labels = [.. existingTodo.Labels], // Create a new list to avoid reference issues
-            IsCompleted = false, // Reset completion status for the copy
-            CreatedAt = dateTimeProvider.UtcNow
+            IsCompleted = false // Reset completion status for the copy
         };
 
         copiedTodoItem.Raise(new TodoItemCreatedDomainEvent(copiedTodoItem.Id));

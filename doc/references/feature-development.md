@@ -57,9 +57,8 @@ using AspNetVue.Server.Common;
 
 namespace AspNetVue.Server.Features.Notes;
 
-public sealed class Note : Entity
+public sealed class Note : BaseEntity
 {
-    public Guid Id { get; set; }
     public Guid UserId { get; set; }
     public string Title { get; set; } = string.Empty;
 }
@@ -89,6 +88,11 @@ internal sealed class NoteConfiguration : IEntityTypeConfiguration<Note>
 Use `context.Set<Note>()`, not a new feature `DbSet` in `ApplicationDbContext`.
 The context scans configurations automatically. Explicit table names prevent a
 change in DbSet ownership from unexpectedly renaming a physical table.
+
+`BaseEntity` supplies `Id` plus the create/update/delete audit columns; do not
+redeclare them. Deletes are soft by default: `Remove` records `DeletedAt` and the
+global query filter hides the row, so write `DeleteNote` like any other delete and do
+not add `IsDeleted` checks to queries.
 
 **`Features/Notes/NotesErrors.cs`**
 
@@ -226,8 +230,9 @@ internal sealed class CreateNoteHandler(
 
 The caller ID comes from `IUserContext`, not the request body. For workflows that
 accept a target user ID, implement the required ownership/delegation checks and
-shared-user existence check explicitly. Inject `IDateTimeProvider` when business
-behavior needs the current time; do not add timestamps unless the model needs them.
+shared-user existence check explicitly. Inject `IDateTimeProvider` only for business
+timestamps (for example `CompletedAt`); create/update/delete audit stamps come from
+`BaseEntity` and are written automatically, so handlers must not set them.
 
 **`CreateNoteEndpoint.cs`**
 

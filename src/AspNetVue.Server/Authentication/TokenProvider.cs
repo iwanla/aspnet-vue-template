@@ -18,13 +18,23 @@ internal sealed class TokenProvider(IConfiguration configuration) : ITokenProvid
 
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Email, user.Email)
+        };
+
+        // Carried so audit stamping can record who made a change without a database round trip.
+        string name = $"{user.FirstName} {user.LastName}".Trim();
+
+        if (name.Length > 0)
+        {
+            claims.Add(new Claim(JwtRegisteredClaimNames.Name, name));
+        }
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(
-            [
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email)
-            ]),
+            Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.AddMinutes(configuration.GetValue<int>("Jwt:ExpirationInMinutes")),
             SigningCredentials = credentials,
             Issuer = configuration["Jwt:Issuer"],

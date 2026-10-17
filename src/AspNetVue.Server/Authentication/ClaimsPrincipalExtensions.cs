@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace AspNetVue.Server.Authentication;
 
@@ -14,5 +15,13 @@ internal static class ClaimsPrincipalExtensions
         string? value = principal?.FindFirstValue(ClaimTypes.NameIdentifier);
 
         return Guid.TryParse(value, out userId);
+    }
+
+    public static string? GetName(this ClaimsPrincipal? principal)
+    {
+        string? name = principal?.FindFirstValue(JwtRegisteredClaimNames.Name)
+            ?? principal?.FindFirstValue(ClaimTypes.Name);
+
+        return string.IsNullOrWhiteSpace(name) ? null : name;
     }
 }

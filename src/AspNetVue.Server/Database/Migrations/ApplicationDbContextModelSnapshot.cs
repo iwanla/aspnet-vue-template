@@ -31,18 +31,55 @@ namespace AspNetVue.Server.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by_name");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleted_by");
+
+                    b.Property<string>("DeletedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("deleted_by_name");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("name");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<string>("UpdatedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by_name");
+
                     b.HasKey("Id")
                         .HasName("pk_permissions");
 
                     b.HasIndex("Name")
                         .IsUnique()
-                        .HasDatabaseName("ix_permissions_name");
+                        .HasDatabaseName("ix_permissions_name")
+                        .HasFilter("deleted_at IS NULL");
 
                     b.ToTable("permissions", "public");
                 });
@@ -54,6 +91,30 @@ namespace AspNetVue.Server.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by_name");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleted_by");
+
+                    b.Property<string>("DeletedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("deleted_by_name");
+
                     b.Property<DateTime>("ExpiresOnUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_on_utc");
@@ -64,6 +125,18 @@ namespace AspNetVue.Server.Database.Migrations
                         .HasColumnType("character varying(200)")
                         .HasColumnName("token");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<string>("UpdatedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by_name");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
@@ -73,7 +146,8 @@ namespace AspNetVue.Server.Database.Migrations
 
                     b.HasIndex("Token")
                         .IsUnique()
-                        .HasDatabaseName("ix_refresh_tokens_token");
+                        .HasDatabaseName("ix_refresh_tokens_token")
+                        .HasFilter("deleted_at IS NULL");
 
                     b.HasIndex("UserId")
                         .HasDatabaseName("ix_refresh_tokens_user_id");
@@ -88,18 +162,55 @@ namespace AspNetVue.Server.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by_name");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleted_by");
+
+                    b.Property<string>("DeletedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("deleted_by_name");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("name");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<string>("UpdatedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by_name");
+
                     b.HasKey("Id")
                         .HasName("pk_roles");
 
                     b.HasIndex("Name")
                         .IsUnique()
-                        .HasDatabaseName("ix_roles_name");
+                        .HasDatabaseName("ix_roles_name")
+                        .HasFilter("deleted_at IS NULL");
 
                     b.ToTable("roles", "public");
                 });
@@ -130,6 +241,30 @@ namespace AspNetVue.Server.Database.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by_name");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleted_by");
+
+                    b.Property<string>("DeletedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("deleted_by_name");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text")
@@ -150,12 +285,25 @@ namespace AspNetVue.Server.Database.Migrations
                         .HasColumnType("text")
                         .HasColumnName("password_hash");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<string>("UpdatedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by_name");
+
                     b.HasKey("Id")
                         .HasName("pk_users");
 
                     b.HasIndex("Email")
                         .IsUnique()
-                        .HasDatabaseName("ix_users_email");
+                        .HasDatabaseName("ix_users_email")
+                        .HasFilter("deleted_at IS NULL");
 
                     b.ToTable("users", "public");
                 });
@@ -194,6 +342,26 @@ namespace AspNetVue.Server.Database.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
+
+                    b.Property<string>("CreatedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("created_by_name");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleted_by");
+
+                    b.Property<string>("DeletedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("deleted_by_name");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text")
@@ -215,6 +383,18 @@ namespace AspNetVue.Server.Database.Migrations
                     b.Property<int>("Priority")
                         .HasColumnType("integer")
                         .HasColumnName("priority");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
+
+                    b.Property<string>("UpdatedByName")
+                        .HasColumnType("text")
+                        .HasColumnName("updated_by_name");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid")

@@ -185,6 +185,26 @@ fails after the database save succeeds, persisted data is not automatically roll
 back, and delivery/retry is not guaranteed. Do not rely on it for atomic external
 side effects without changing the persistence/delivery design explicitly.
 
+## Auditing and soft delete
+
+**Locations:** `Common/BaseEntity` for the audited base type; `Database/ApplicationDbContext` for stamping and filtering.
+
+`BaseEntity` is the base for persisted, audited entities. It adds `Id`, the
+create/update columns, actor id/name columns, and `DeletedAt`. `ApplicationDbContext`
+stamps them from `IDateTimeProvider` and `IUserContext` before saving, so handlers do
+not set `CreatedAt`/`UpdatedAt` and must not add their own audit columns. The actor is
+null for work without an authenticated request, such as seeding or registration.
+
+Deletes are soft: a `Removed` entity is rewritten to `Modified` with `DeletedAt` set,
+and a global query filter (`DeletedAt IS NULL`) hides it from every query. Consequences:
+
+- Reserve `IgnoreQueryFilters()` for explicit audits/administration, never for business reads.
+- Unique indexes on audited tables are partial (`WHERE deleted_at IS NULL`), so a value is
+  reusable once the row that held it is soft-deleted.
+- Join entities (`UserRole`, `RolePermission`) are not audited and still hard-delete, so a
+  soft-deleted principal can leave join rows behind; authorization reads go through the
+  filtered principal and never through the join alone.
+
 ## Authentication and authorization
 
 **Locations:** `Authentication/`, `Authorization/`; credential workflows remain

@@ -1,8 +1,9 @@
+using AspNetVue.Server.Common;
+
 namespace AspNetVue.Server.Database.Entities.Identity;
 
-public sealed class RefreshToken
+public sealed class RefreshToken : BaseEntity
 {
-    public Guid Id { get; set; }
     public string Token { get; set; }
     public Guid UserId { get; set; }
     public DateTime ExpiresOnUtc { get; set; }

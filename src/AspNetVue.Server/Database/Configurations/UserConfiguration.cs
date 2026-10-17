@@ -10,6 +10,7 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
     {
         builder.HasKey(u => u.Id);
 
-        builder.HasIndex(u => u.Email).IsUnique();
+        // Partial: a soft-deleted row keeps its value, so only active rows must be unique.
+        builder.HasIndex(u => u.Email).IsUnique().HasFilter("deleted_at IS NULL");
     }
 }

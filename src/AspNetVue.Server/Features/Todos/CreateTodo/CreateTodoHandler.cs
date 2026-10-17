@@ -10,7 +10,6 @@ namespace AspNetVue.Server.Features.Todos.CreateTodo;
 
 internal sealed class CreateTodoHandler(
     ApplicationDbContext context,
-    IDateTimeProvider dateTimeProvider,
     IUserContext userContext) : ICommandHandler<CreateTodoCommand, Guid>
 {
     public async Task<Result<Guid>> Handle(CreateTodoCommand command, CancellationToken cancellationToken)
@@ -36,8 +35,7 @@ internal sealed class CreateTodoHandler(
             Priority = command.Priority,
             DueDate = command.DueDate,
             Labels = command.Labels,
-            IsCompleted = false,
-            CreatedAt = dateTimeProvider.UtcNow
+            IsCompleted = false
         };
 
         todoItem.Raise(new TodoItemCreatedDomainEvent(todoItem.Id));

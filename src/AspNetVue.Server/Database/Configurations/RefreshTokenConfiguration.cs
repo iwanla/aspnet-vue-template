@@ -12,7 +12,7 @@ internal sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refre
 
         builder.Property(refreshToken => refreshToken.Token).HasMaxLength(200);
 
-        builder.HasIndex(refreshToken => refreshToken.Token).IsUnique();
+        builder.HasIndex(refreshToken => refreshToken.Token).IsUnique().HasFilter("deleted_at IS NULL");
 
         builder.HasOne(refreshToken => refreshToken.User)
             .WithMany()

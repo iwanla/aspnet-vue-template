@@ -1,5 +1,9 @@
 ﻿namespace AspNetVue.Server.Common;
 
+/// <summary>
+/// Adds domain-event support to a domain object. Persisted entities derive from
+/// <see cref="BaseEntity"/>, which also supplies identity and the audit columns.
+/// </summary>
 public abstract class Entity
 {
     private readonly List<IDomainEvent> _domainEvents = [];

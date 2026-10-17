@@ -1,19 +1,38 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
+using AspNetVue.Server.Authentication;
+using AspNetVue.Server.Common;
 using AspNetVue.Server.Database;
 
 namespace AspNetVue.Server.UnitTests.Abstractions;
 
 public abstract class BaseHandlerTest
 {
-    protected static ApplicationDbContext CreateDbContext(IDomainEventsDispatcher? domainEventsDispatcher = null)
+    protected static ApplicationDbContext CreateDbContext(
+        IDomainEventsDispatcher? domainEventsDispatcher = null,
+        IDateTimeProvider? dateTimeProvider = null,
+        IUserContext? userContext = null)
     {
         DbContextOptions<ApplicationDbContext> options = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseInMemoryDatabase($"vertical-slice-{Guid.NewGuid()}")
             .Options;
 
-        return new ApplicationDbContext(options, domainEventsDispatcher ?? Substitute.For<IDomainEventsDispatcher>());
+        IUserContext resolvedUserContext = userContext ?? CreateAnonymousUserContext();
+
+        return new ApplicationDbContext(
+            options,
+            domainEventsDispatcher ?? Substitute.For<IDomainEventsDispatcher>(),
+            dateTimeProvider ?? Substitute.For<IDateTimeProvider>(),
+            resolvedUserContext);
+    }
+
+    private static IUserContext CreateAnonymousUserContext()
+    {
+        // NSubstitute auto-values strings as "", but "no authenticated request" means null.
+        IUserContext userContext = Substitute.For<IUserContext>();
+        userContext.Name.Returns((string?)null);
+        return userContext;
     }
 
     protected static HybridCache CreateCache()

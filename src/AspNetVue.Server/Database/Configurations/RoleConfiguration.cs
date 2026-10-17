@@ -12,6 +12,6 @@ internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
 
         builder.Property(role => role.Name).HasMaxLength(200);
 
-        builder.HasIndex(role => role.Name).IsUnique();
+        builder.HasIndex(role => role.Name).IsUnique().HasFilter("deleted_at IS NULL");
     }
 }

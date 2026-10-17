@@ -1,5 +1,4 @@
-﻿using AspNetVue.Server.Authentication;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace AspNetVue.Server.Authentication;
 
@@ -13,9 +12,14 @@ internal sealed class UserContext : IUserContext
     }
 
     public Guid UserId =>
-        _httpContextAccessor
-            .HttpContext?
-            .User
-            .GetUserId() ??
-        throw new UserContextUnavailableException();
+        UserIdOrNull ?? throw new UserContextUnavailableException();
+
+    public Guid? UserIdOrNull =>
+        _httpContextAccessor.HttpContext is { } httpContext &&
+        httpContext.User.TryGetUserId(out Guid userId)
+            ? userId
+            : null;
+
+    public string? Name =>
+        _httpContextAccessor.HttpContext?.User.GetName();
 }
