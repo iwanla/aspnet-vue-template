@@ -80,6 +80,7 @@ cd ../AspNetVue.Server && dotnet run    # auto-runs `bun run dev` via SpaProxy
 | POST | `api/v1/identity/register` | anon, rate-limit `authentication` |
 | POST | `api/v1/identity/login` | anon, rate-limit `authentication` → `{ accessToken, refreshToken }` |
 | POST | `api/v1/identity/refresh-token` | anon, rate-limit `authentication` |
+| GET | `api/v1/identity/me` | login (any authenticated user) → profil + permissions efektif |
 | GET | `api/v1/users/{userId}` | permission `users:access` |
 | POST / GET / GET{id} / PUT / DELETE / PUT complete / POST copy | `api/v1/todos…` | permissions `todos:read/create/update/delete` |
 | GET | `api/health` | anon (Npgsql check) |
@@ -113,6 +114,10 @@ Permission-based: the database is the source of truth, the JWT only carries iden
   (`.HasPermission(...)`); handlers never check roles.
 - The credential/token endpoints under `/api/v1/identity/*` are anonymous; the user-record
   endpoint `/api/v1/users/{userId}` requires `users:access`.
+- `GET /api/v1/identity/me` needs only a valid token (no permission) and returns the caller's
+  profile plus its **effective permission names**, so a client can hide UI it may not use. It
+  reads the same `IPermissionProvider` (2-minute cache) — the JWT still carries no permissions
+  and the server remains the only authority (hiding a button is UX, not security).
 - `IPermissionProvider` reads a user's permissions in one query and caches them for 2 minutes
   (`auth:permissions:<userId>`); access is denied when permissions cannot be resolved.
 
@@ -123,7 +128,7 @@ Full rules: `ARCHITECTURE.md` §10 (RBAC) and §11 (layering).
 ## Tests
 
 ```bash
-dotnet test                        # unit (38) + architecture (4)
+dotnet test                        # unit (40) + architecture (4)
 dotnet test tests/AspNetVue.Server.IntegrationTests  # needs Docker Hub (pulls postgres:17)
 ```
 

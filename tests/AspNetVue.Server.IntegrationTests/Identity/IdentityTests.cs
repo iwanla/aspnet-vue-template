@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using AspNetVue.Server.Features.Identity.Me;
 
 namespace AspNetVue.Server.IntegrationTests.Identity;
 
@@ -76,5 +77,36 @@ public sealed class IdentityTests(IntegrationTestWebAppFactory factory) : BaseIn
 
         // Assert
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Me_Should_ReturnProfileAndPermissions_ForAuthenticatedUser()
+    {
+        // Arrange
+        string email = UniqueEmail();
+        Guid userId = await RegisterUserAsync(email);
+        AccessTokens tokens = await LoginAsync(email);
+        Authenticate(tokens.AccessToken);
+
+        // Act
+        HttpResponseMessage response = await HttpClient.GetAsync("api/v1/identity/me");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        MeResponse? me = await response.Content.ReadFromJsonAsync<MeResponse>();
+        me!.Id.ShouldBe(userId);
+        me.Email.ShouldBe(email);
+        me.Permissions.ShouldContain("todos:read");
+    }
+
+    [Fact]
+    public async Task Me_Should_ReturnUnauthorized_WithoutToken()
+    {
+        // Act
+        HttpResponseMessage response = await HttpClient.GetAsync("api/v1/identity/me");
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
 }

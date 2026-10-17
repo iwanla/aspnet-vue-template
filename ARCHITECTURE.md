@@ -194,6 +194,10 @@ Roles are administrative groupings only — code always checks permissions, neve
     by it.
 11. Bootstrap: every registrant gets the `user` role and the first one additionally gets `admin`
     (`RegisterHandler`). Seeded roles: `admin` (all permissions), `user` (`todos:*`).
+12. `GET /api/v1/identity/me` requires authentication but no permission and returns the caller's
+    profile plus its effective permission names, so a client can hide UI it may not use. It reads
+    the same `IPermissionProvider`, so the JWT still carries no permissions and the endpoint
+    authority stays on the server.
 
 JWT claims are only acceptable for a small, rarely changing permission set with short-lived
 tokens (under 15 minutes); this template always reads from the database + cache.
@@ -214,8 +218,9 @@ Features ─► Database
    `Permission`, `UserRole`, `RolePermission`. An entity used by a single feature stays in that
    feature root (`Features/Todos/TodoItem.cs`).
 2. Features may use the identity entities, and hold use cases only — never entity definitions.
-   `Features/Identity/` owns the credential/token lifecycle (`Register`, `Login`, `Refresh`);
-   `Features/Users/` owns the user-record read model (`GetUserById`, `GetUserByEmail`).
+   `Features/Identity/` owns the credential/token lifecycle and the caller's own session
+   (`Register`, `Login`, `Refresh`, `Me`); `Features/Users/` owns the user-record read model
+   (`GetUserById`, `GetUserByEmail`).
 3. EF configurations follow their entity: identity configurations stay in
    `Database/Configurations/`, a feature configuration lives in the feature root
    (`Features/Todos/TodoItemConfiguration.cs`). `ApplyConfigurationsFromAssembly` finds both, so
