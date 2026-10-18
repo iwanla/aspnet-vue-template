@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
-namespace AspNetVue.Server.Common.Extensions;
+namespace AspNetVue.Server.Common.OpenApi;
 
 // Adds a JWT bearer security scheme to the generated OpenAPI document so the
 // Scalar UI shows an "Authorize" input and sends the token on protected calls.

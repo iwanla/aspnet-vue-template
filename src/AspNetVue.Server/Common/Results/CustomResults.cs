@@ -1,6 +1,4 @@
-﻿using AspNetVue.Server.Common;
-
-namespace AspNetVue.Server.Common;
+﻿namespace AspNetVue.Server.Common.Results;
 
 public static class CustomResults
 {
@@ -11,7 +9,7 @@ public static class CustomResults
             throw new InvalidOperationException();
         }
 
-        return Results.Problem(
+        return Microsoft.AspNetCore.Http.Results.Problem(
             title: GetTitle(result.Error),
             detail: GetDetail(result.Error),
             type: GetType(result.Error.Type),

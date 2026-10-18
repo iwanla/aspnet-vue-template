@@ -13,12 +13,13 @@ Paths are relative to this project. `{Domain}` and `{UseCase}` are placement pat
 | --- | --- |
 | `Program.cs` | Host composition, middleware order, API grouping, and SPA fallback; not use-case business logic. |
 | `DependencyInjection.cs` | Service lifetimes, assembly scanning, and decorator composition; not application workflows. |
+| `Hosting/` | Composition helpers that connect server areas, including middleware and migration wiring. Capability-specific registrations stay with their capability. |
 | `Features/{Domain}/{UseCase}/` | One operation's endpoint, request/response, command/query, handler, and validator. Keep the operation's behavior together rather than splitting it into global controller/service folders. |
 | `Features/{Domain}/` | Domain-owned entities, EF mappings, errors, cache keys, permission constants/catalogs, and events shared by that domain's use cases. Do not turn these into cross-feature dependencies. |
 | `Features/Identity/` | Credential/token lifecycle and the caller's own session; user-record queries belong in `Features/Users/`. |
 | `Authentication/` | Technical identity mechanisms: token creation/validation, password hashing, and caller context; not credential endpoints or business permissions. |
 | `Authorization/` | Permission resolution/enforcement and role/catalog seeding. Feature-specific permission definitions belong to their feature. |
-| `Common/` | Domain-neutral contracts and cross-cutting behavior needed across features, including shared errors. Must not depend on any feature. |
+| `Common/` | Domain-neutral contracts and cross-cutting behavior, grouped into capability folders with no root source files. Includes genuinely shared errors; must not depend on other server areas. |
 | `Database/ApplicationDbContext.cs` | Persistence orchestration and shared identity DbSets; access feature entities with `Set<T>()` instead of adding feature dependencies here. |
 | `Database/Entities/Identity/` | Minimal identity/access entities consumed by infrastructure. Feature-specific profile data belongs in a feature-owned entity keyed by user ID. |
 | `Database/Configurations/` | Mappings for shared identity/access entities; feature-owned mappings stay with their entity under `Features/`. |

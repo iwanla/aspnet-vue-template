@@ -1,6 +1,5 @@
-using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Results;
 using AspNetVue.Server.Common.Endpoints;
-using AspNetVue.Server.Common.Extensions;
 using AspNetVue.Server.Common.Messaging;
 
 namespace AspNetVue.Server.Features.Todos.UpdateTodo;

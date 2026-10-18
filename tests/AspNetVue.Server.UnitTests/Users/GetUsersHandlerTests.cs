@@ -1,4 +1,4 @@
-using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Results;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Database.Entities.Identity;
 using AspNetVue.Server.Features.Users.GetUsers;

@@ -5,7 +5,10 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 using AspNetVue.Server;
 using AspNetVue.Server.Common.Endpoints;
-using AspNetVue.Server.Common.Extensions;
+using AspNetVue.Server.Common.RateLimiting;
+using AspNetVue.Server.Common.OpenApi;
+using AspNetVue.Server.Common.Telemetry;
+using AspNetVue.Server.Hosting;
 using Asp.Versioning.Builder;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);

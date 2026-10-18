@@ -1,6 +1,4 @@
-﻿using AspNetVue.Server.Common;
-
-namespace AspNetVue.Server.Common.Extensions;
+﻿namespace AspNetVue.Server.Common.Results;
 
 public static class ResultExtensions
 {

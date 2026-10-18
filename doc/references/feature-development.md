@@ -53,7 +53,7 @@ as a foreign-key target; it does not add note fields to the shared user entity.
 **`Features/Notes/Note.cs`**
 
 ```csharp
-using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Domain;
 
 namespace AspNetVue.Server.Features.Notes;
 
@@ -97,7 +97,7 @@ not add `IsDeleted` checks to queries.
 **`Features/Notes/NotesErrors.cs`**
 
 ```csharp
-using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Results;
 
 namespace AspNetVue.Server.Features.Notes;
 
@@ -200,7 +200,7 @@ public sealed class CreateNoteValidator : AbstractValidator<CreateNoteCommand>
 
 ```csharp
 using AspNetVue.Server.Authentication;
-using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Results;
 using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
 
@@ -237,10 +237,9 @@ timestamps (for example `CompletedAt`); create/update/delete audit stamps come f
 **`CreateNoteEndpoint.cs`**
 
 ```csharp
-using AspNetVue.Server.Common;
 using AspNetVue.Server.Common.Endpoints;
-using AspNetVue.Server.Common.Extensions;
 using AspNetVue.Server.Common.Messaging;
+using AspNetVue.Server.Common.Results;
 
 namespace AspNetVue.Server.Features.Notes.CreateNote;
 
@@ -307,7 +306,7 @@ public sealed record GetNoteByIdResponse(Guid Id, string Title);
 ```csharp
 using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authentication;
-using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Results;
 using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
 
@@ -346,10 +345,9 @@ needs validation, implement it explicitly rather than adding an unused validator
 **`GetNoteByIdEndpoint.cs`**
 
 ```csharp
-using AspNetVue.Server.Common;
 using AspNetVue.Server.Common.Endpoints;
-using AspNetVue.Server.Common.Extensions;
 using AspNetVue.Server.Common.Messaging;
+using AspNetVue.Server.Common.Results;
 
 namespace AspNetVue.Server.Features.Notes.GetNoteById;
 

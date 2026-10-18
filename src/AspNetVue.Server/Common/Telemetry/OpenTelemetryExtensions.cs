@@ -4,7 +4,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-namespace AspNetVue.Server.Common.Extensions;
+namespace AspNetVue.Server.Common.Telemetry;
 
 internal static class OpenTelemetryExtensions
 {

@@ -1,6 +1,4 @@
-﻿using AspNetVue.Server.Common;
-
-namespace AspNetVue.Server.Common;
+﻿namespace AspNetVue.Server.Common.Time;
 
 internal sealed class DateTimeProvider : IDateTimeProvider
 {

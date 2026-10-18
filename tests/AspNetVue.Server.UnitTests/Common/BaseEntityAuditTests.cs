@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authentication;
-using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Time;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Database.Entities.Identity;
 using AspNetVue.Server.UnitTests.Abstractions;

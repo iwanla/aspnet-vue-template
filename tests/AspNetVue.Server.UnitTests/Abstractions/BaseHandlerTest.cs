@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
 using AspNetVue.Server.Authentication;
-using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Time;
 using AspNetVue.Server.Database;
 
 namespace AspNetVue.Server.UnitTests.Abstractions;

@@ -1,7 +1,7 @@
 ﻿using AspNetVue.Server.Common.Messaging;
 using FluentValidation;
 using FluentValidation.Results;
-using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Results;
 
 namespace AspNetVue.Server.Common.Behaviors;
 

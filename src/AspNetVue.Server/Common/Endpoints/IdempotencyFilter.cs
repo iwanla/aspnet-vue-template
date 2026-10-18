@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Primitives;
 
-namespace AspNetVue.Server.Common;
+namespace AspNetVue.Server.Common.Endpoints;
 
 // Opt-in idempotency for a POST endpoint. When a request carries an
 // Idempotency-Key header, the first request for that key is processed and the
@@ -41,7 +41,7 @@ internal sealed class IdempotencyFilter(HybridCache cache) : IEndpointFilter
 
         if (!isFirstRequest)
         {
-            return Results.Problem(
+            return Microsoft.AspNetCore.Http.Results.Problem(
                 title: "Duplicate request",
                 detail: "A request with this idempotency key has already been processed.",
                 statusCode: StatusCodes.Status409Conflict);

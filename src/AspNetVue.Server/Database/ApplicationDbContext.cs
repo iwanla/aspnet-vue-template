@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
 using AspNetVue.Server.Authentication;
-using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Domain;
+using AspNetVue.Server.Common.Time;
 using AspNetVue.Server.Database.Entities.Identity;
 
 namespace AspNetVue.Server.Database;

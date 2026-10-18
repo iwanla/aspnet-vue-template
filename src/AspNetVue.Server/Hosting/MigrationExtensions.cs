@@ -1,7 +1,7 @@
 ﻿using AspNetVue.Server.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace AspNetVue.Server.Common.Extensions;
+namespace AspNetVue.Server.Hosting;
 
 public static class MigrationExtensions
 {

@@ -1,6 +1,6 @@
 ﻿using AspNetVue.Server.Common.Middleware;
 
-namespace AspNetVue.Server.Common.Extensions;
+namespace AspNetVue.Server.Hosting;
 
 public static class MiddlewareExtensions
 {

@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using AspNetVue.Server.Authentication;
-using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Domain;
+using AspNetVue.Server.Common.Results;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Features.Todos;
 using AspNetVue.Server.Features.Todos.UpdateTodo;

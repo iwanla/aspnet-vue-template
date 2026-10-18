@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace AspNetVue.Server.Common;
+namespace AspNetVue.Server.Common.Results;
 
 public class Result
 {

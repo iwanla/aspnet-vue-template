@@ -1,4 +1,4 @@
-namespace AspNetVue.Server.Common;
+namespace AspNetVue.Server.Common.Domain;
 
 public interface IDomainEventHandler<in T> where T : IDomainEvent
 {

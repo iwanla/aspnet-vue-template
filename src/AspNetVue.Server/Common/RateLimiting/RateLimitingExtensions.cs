@@ -1,7 +1,6 @@
 using System.Threading.RateLimiting;
-using AspNetVue.Server.Common;
 
-namespace AspNetVue.Server.Common.Extensions;
+namespace AspNetVue.Server.Common.RateLimiting;
 
 internal static class RateLimitingExtensions
 {

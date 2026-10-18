@@ -1,4 +1,4 @@
-﻿namespace AspNetVue.Server.Common;
+﻿namespace AspNetVue.Server.Common.Domain;
 
 /// <summary>
 /// Adds domain-event support to a domain object. Persisted entities derive from

@@ -1,6 +1,6 @@
 using Scalar.AspNetCore;
 
-namespace AspNetVue.Server.Common.Extensions;
+namespace AspNetVue.Server.Hosting;
 
 public static class ApplicationBuilderExtensions
 {

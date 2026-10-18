@@ -1,16 +1,7 @@
-using Microsoft.AspNetCore.OpenApi;
-
-namespace AspNetVue.Server.Common.Extensions;
+namespace AspNetVue.Server.Hosting;
 
 internal static class ServiceCollectionExtensions
 {
-    internal static IServiceCollection AddOpenApiWithAuth(this IServiceCollection services)
-    {
-        services.AddOpenApi("v1", options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
-
-        return services;
-    }
-
     internal static IServiceCollection AddCorsInternal(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddCors(options => options.AddDefaultPolicy(policy =>

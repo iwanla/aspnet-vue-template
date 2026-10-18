@@ -1,4 +1,4 @@
-namespace AspNetVue.Server.Common;
+namespace AspNetVue.Server.Common.Domain;
 
 /// <summary>
 /// Base type for audited, persisted entities. Adds the surrogate key and the

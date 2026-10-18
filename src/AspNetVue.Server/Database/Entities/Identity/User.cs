@@ -1,4 +1,4 @@
-using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Domain;
 
 namespace AspNetVue.Server.Database.Entities.Identity;
 

@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using AspNetVue.Server.Common;
 
 namespace AspNetVue.Server.Common.Endpoints;
 

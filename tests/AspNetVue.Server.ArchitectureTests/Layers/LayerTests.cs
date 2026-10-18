@@ -8,6 +8,40 @@ namespace AspNetVue.Server.ArchitectureTests.Layers;
 public class LayerTests : BaseTest
 {
     [Fact]
+    public void CommonTypes_Should_ResideInCapabilityNamespaces()
+    {
+        string[] rootTypes = WebApiAssembly.GetTypes()
+            .Where(type => type.Namespace == "AspNetVue.Server.Common")
+            .Select(type => type.FullName!)
+            .ToArray();
+
+        rootTypes.ShouldBeEmpty("Common types must belong to a capability namespace.");
+    }
+
+    [Fact]
+    public void Common_Should_NotDependOn_OtherServerAreas()
+    {
+        string[] otherNamespaces = WebApiAssembly.GetTypes()
+            .Select(type => type.Namespace)
+            .OfType<string>()
+            .Where(ns => ns.StartsWith("AspNetVue.Server.", StringComparison.Ordinal) &&
+                         !ns.StartsWith("AspNetVue.Server.Common.", StringComparison.Ordinal))
+            .Distinct()
+            .ToArray();
+
+        TestResult result = Types.InAssembly(WebApiAssembly)
+            .That()
+            .ResideInNamespaceStartingWith("AspNetVue.Server.Common")
+            .ShouldNot()
+            .HaveDependencyOnAny(otherNamespaces)
+            .GetResult();
+
+        result.IsSuccessful.ShouldBeTrue(
+            "Common must not depend on other server areas. Offending types: " +
+            string.Join(", ", result.FailingTypeNames ?? []));
+    }
+
+    [Fact]
     public void CommandAndQueryHandlers_Should_BeSealed()
     {
         TestResult result = Types.InAssembly(WebApiAssembly)

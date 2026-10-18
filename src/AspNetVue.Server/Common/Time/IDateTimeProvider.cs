@@ -1,4 +1,4 @@
-﻿namespace AspNetVue.Server.Common;
+﻿namespace AspNetVue.Server.Common.Time;
 
 public interface IDateTimeProvider
 {

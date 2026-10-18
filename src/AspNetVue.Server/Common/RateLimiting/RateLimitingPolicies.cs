@@ -1,4 +1,4 @@
-namespace AspNetVue.Server.Common;
+namespace AspNetVue.Server.Common.RateLimiting;
 
 public static class RateLimitingPolicies
 {

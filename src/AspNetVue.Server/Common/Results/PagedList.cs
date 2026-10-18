@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace AspNetVue.Server.Common;
+namespace AspNetVue.Server.Common.Results;
 
 public sealed class PagedList<T>
 {

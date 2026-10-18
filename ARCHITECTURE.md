@@ -56,6 +56,9 @@ Database         --> Common
 - Integration adapters should remain feature-independent; application handlers
   supply business inputs and decide when to invoke them.
 - `Common` must not become a service locator or a container for business workflows.
+- `Common` must not depend on other server areas, including `Database`,
+  `Authentication`, `Authorization`, `Integrations`, and `Hosting`. Host composition
+  helpers that connect those areas belong in the server-root `Hosting/` folder.
 - Client/server interaction is through HTTP contracts, not shared runtime objects
   or direct browser access to persistence.
 
@@ -64,7 +67,7 @@ every domain needs another assembly, service abstraction, or repository wrapper.
 
 ## Composition root
 
-**Location:** `Program.cs`, `DependencyInjection.cs`.
+**Location:** `Program.cs`, `DependencyInjection.cs`, and server-root `Hosting/`.
 
 The composition root selects implementations, configures lifetimes, installs
 cross-cutting services, and connects routes and middleware. It must not implement
@@ -82,10 +85,14 @@ business workflows.
 Shared services depend on contracts or generic discovery mechanisms. Their source
 code should remain unchanged when an ordinary feature is added or removed.
 
+`Hosting/` contains composition helpers for middleware, migrations, OpenAPI route
+mapping, and CORS. Capability-specific service registration stays with its
+capability, such as `Common/OpenApi`, `Common/RateLimiting`, and `Common/Telemetry`.
+
 ## Presentation boundary
 
 **Location:** feature-owned endpoint/request/response types; shared HTTP mechanisms
-in `Common/Endpoints`, `Common/Extensions`, and middleware.
+in `Common/Endpoints`, `Common/Results`, `Common/OpenApi`, and `Common/Middleware`.
 
 The presentation boundary owns HTTP concerns: binding input, declaring routes,
 version metadata and access requirements, invoking a handler, and translating its
@@ -152,6 +159,22 @@ Ownership determines placement:
 | Error used across feature boundaries | `Common/Errors/`, without importing feature types. |
 | Generic result, event, time, or messaging contract | `Common/`, without business workflow knowledge. |
 
+Organize `Common/` by capability; no source types belong directly in its root:
+
+- `Domain/`: `Entity`, `BaseEntity`, and domain-event contracts. `Entity` supplies
+  event collection; `BaseEntity` adds identity, auditing, and soft-delete state.
+- `Results/`: results, errors, validation errors, pagination, and result/HTTP helpers.
+- `Messaging/`: minimal command/query markers and handler contracts, without a mediator.
+- `Behaviors/`: logging and validation handler decorators.
+- `Endpoints/` and `Middleware/`: shared HTTP mechanisms.
+- `OpenApi/`, `RateLimiting/`, `Telemetry/`, and `Time/`: their respective capabilities,
+  with capability-specific extensions kept beside the types they configure.
+- `Errors/`: genuinely shared errors. `UserErrors` is consumed by Todos, Users, and
+  Identity and must not move into one feature while those consumers remain.
+
+Do not create a generic `Extensions/` folder for wiring. Reserve that name, if
+needed later, for pure type helpers; keep capability-specific extensions local.
+
 Do not move business logic into shared infrastructure merely to make it callable
 from another feature. A new cross-feature collaboration requires an explicit
 contract and dependency decision, not a direct reference to another feature's
@@ -187,7 +210,7 @@ side effects without changing the persistence/delivery design explicitly.
 
 ## Auditing and soft delete
 
-**Locations:** `Common/BaseEntity` for the audited base type; `Database/ApplicationDbContext` for stamping and filtering.
+**Locations:** `Common/Domain/BaseEntity` for the audited base type; `Database/ApplicationDbContext` for stamping and filtering.
 
 `BaseEntity` is the base for persisted, audited entities. It adds `Id`, the
 create/update columns, actor id/name columns, and `DeletedAt`. `ApplicationDbContext`
@@ -301,7 +324,8 @@ changed, why it changed, and how enforcement changes with it.
 ## Verification and source of truth
 
 - Architecture tests enforce sealed endpoint/handler types, infrastructure-to-feature
-  dependency prohibitions, and isolation between the features listed by the test.
+  dependency prohibitions, capability namespaces for `Common` types, no dependencies
+  from `Common` to other server areas, and isolation between the features listed by the test.
   The feature list is currently explicit; adding a feature requires extending that
   coverage. These tests do not enforce every responsibility described above.
 - Unit tests verify application/service behavior with controlled dependencies.
@@ -314,7 +338,7 @@ Implementation anchors:
 
 | Base path | Files / directories | Source of truth for |
 | --- | --- | --- |
-| `src/AspNetVue.Server/` | `Program.cs`, `DependencyInjection.cs` | Composition, discovery, and decorator order. |
+| `src/AspNetVue.Server/` | `Program.cs`, `DependencyInjection.cs`, `Hosting/` | Composition, discovery, and decorator order. |
 | `src/AspNetVue.Server/` | `Common/Endpoints/`, `Common/Messaging/`, `Common/Behaviors/` | Transport-to-application contracts and shared execution. |
 | `src/AspNetVue.Server/` | `Database/ApplicationDbContext.cs`, `Database/DomainEventsDispatcher.cs` | Persistence and event-delivery semantics. |
 | `src/AspNetVue.Server/` | `Authorization/` | Policy resolution, permission caching, and catalog initialization. |

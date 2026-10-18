@@ -1,4 +1,4 @@
-using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Results;
 using AspNetVue.Server.Common.Messaging;
 
 namespace AspNetVue.Server.Features.Users.GetUsers;

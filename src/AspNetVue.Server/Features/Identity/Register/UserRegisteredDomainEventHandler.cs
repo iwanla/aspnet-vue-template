@@ -1,4 +1,4 @@
-using AspNetVue.Server.Common;
+using AspNetVue.Server.Common.Domain;
 using AspNetVue.Server.Features.Identity;
 using AspNetVue.Server.Integrations.Email;
 
