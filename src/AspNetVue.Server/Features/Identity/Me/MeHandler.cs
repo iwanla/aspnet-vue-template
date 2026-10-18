@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authorization;
 using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common.Results;
-using AspNetVue.Server.Common.Errors;
 using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
 
@@ -31,7 +30,7 @@ internal sealed class MeHandler(
 
         if (user is null)
         {
-            return Result.Failure<MeResponse>(UserErrors.NotFound(userId));
+            return Result.Failure<MeResponse>(IdentityErrors.UserNotFound(userId));
         }
 
         IReadOnlySet<string> permissions = await permissionProvider.GetForUserIdAsync(userId, cancellationToken);

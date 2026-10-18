@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common.Results;
 using AspNetVue.Server.Common.Time;
-using AspNetVue.Server.Common.Errors;
 using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Database.Entities.Identity;
@@ -23,14 +22,14 @@ internal sealed class LoginHandler(
 
         if (user is null)
         {
-            return Result.Failure<AccessTokensResponse>(UserErrors.NotFoundByEmail);
+            return Result.Failure<AccessTokensResponse>(IdentityErrors.InvalidCredentials);
         }
 
         bool verified = passwordHasher.Verify(command.Password, user.PasswordHash);
 
         if (!verified)
         {
-            return Result.Failure<AccessTokensResponse>(UserErrors.NotFoundByEmail);
+            return Result.Failure<AccessTokensResponse>(IdentityErrors.InvalidCredentials);
         }
 
         string accessToken = tokenProvider.Create(user);

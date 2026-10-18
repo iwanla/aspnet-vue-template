@@ -2,7 +2,6 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common.Results;
-using AspNetVue.Server.Common.Errors;
 using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
 
@@ -15,7 +14,7 @@ internal sealed class GetTodosHandler(ApplicationDbContext context, IUserContext
     {
         if (query.UserId != userContext.UserId)
         {
-            return Result.Failure<PagedList<GetTodosResponse>>(UserErrors.Unauthorized());
+            return Result.Failure<PagedList<GetTodosResponse>>(TodoItemErrors.Unauthorized());
         }
 
         IQueryable<TodoItem> todosQuery = context.Set<TodoItem>()

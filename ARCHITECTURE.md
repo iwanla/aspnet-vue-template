@@ -169,8 +169,13 @@ Organize `Common/` by capability; no source types belong directly in its root:
 - `Endpoints/` and `Middleware/`: shared HTTP mechanisms.
 - `OpenApi/`, `RateLimiting/`, `Telemetry/`, and `Time/`: their respective capabilities,
   with capability-specific extensions kept beside the types they configure.
-- `Errors/`: genuinely shared errors. `UserErrors` is consumed by Todos, Users, and
-  Identity and must not move into one feature while those consumers remain.
+
+User-record errors belong to `Features/Users/UserErrors`; credential/session errors
+belong to `Features/Identity/IdentityErrors`; Todo precondition errors belong to
+`Features/Todos/TodoItemErrors`. Similar failures do not require a shared business
+error catalog. The latter two retain legacy `Users.*` codes, descriptions, and error
+types for API compatibility; those strings do not imply a dependency on Users.
+Create `Common/Errors/` only for genuinely domain-neutral shared errors.
 
 Do not create a generic `Extensions/` folder for wiring. Reserve that name, if
 needed later, for pure type helpers; keep capability-specific extensions local.

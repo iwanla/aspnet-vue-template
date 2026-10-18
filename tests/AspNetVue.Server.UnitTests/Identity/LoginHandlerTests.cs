@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common.Results;
 using AspNetVue.Server.Common.Time;
-using AspNetVue.Server.Common.Errors;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Database.Entities.Identity;
 using AspNetVue.Server.Features.Identity;
@@ -34,7 +33,8 @@ public sealed class LoginHandlerTests : BaseHandlerTest
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(UserErrors.NotFoundByEmail);
+        result.Error.ShouldBe(Error.NotFound(
+            "Users.NotFoundByEmail", "The user with the specified email was not found"));
     }
 
     [Fact]
@@ -60,7 +60,8 @@ public sealed class LoginHandlerTests : BaseHandlerTest
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(UserErrors.NotFoundByEmail);
+        result.Error.ShouldBe(Error.NotFound(
+            "Users.NotFoundByEmail", "The user with the specified email was not found"));
     }
 
     [Fact]

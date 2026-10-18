@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common.Domain;
 using AspNetVue.Server.Common.Results;
-using AspNetVue.Server.Common.Errors;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Database.Entities.Identity;
 using AspNetVue.Server.Features.Todos;
@@ -35,7 +34,8 @@ public sealed class CreateTodoHandlerTests : BaseHandlerTest
         Result<Guid> result = await handler.Handle(Command, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(UserErrors.Unauthorized());
+        result.Error.ShouldBe(Error.Failure(
+            "Users.Unauthorized", "You are not authorized to perform this action."));
     }
 
     [Fact]
@@ -50,7 +50,8 @@ public sealed class CreateTodoHandlerTests : BaseHandlerTest
         Result<Guid> result = await handler.Handle(Command, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.ShouldBe(UserErrors.NotFound(UserId));
+        result.Error.ShouldBe(Error.NotFound(
+            "Users.NotFound", $"The user with the Id = '{UserId}' was not found"));
     }
 
     [Fact]

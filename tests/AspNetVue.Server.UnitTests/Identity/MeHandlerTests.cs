@@ -64,7 +64,8 @@ public sealed class MeHandlerTests : BaseHandlerTest
 
         // Assert
         result.IsFailure.ShouldBeTrue();
-        result.Error.Code.ShouldBe("Users.NotFound");
+        result.Error.ShouldBe(Error.NotFound(
+            "Users.NotFound", $"The user with the Id = '{UserId}' was not found"));
     }
 
     /// <summary>NSubstitute cannot proxy the internal <see cref="IPermissionProvider"/>.</summary>

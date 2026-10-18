@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using AspNetVue.Server.Authentication;
 using AspNetVue.Server.Common.Results;
-using AspNetVue.Server.Common.Errors;
 using AspNetVue.Server.Common.Messaging;
 using AspNetVue.Server.Database;
 using AspNetVue.Server.Database.Entities.Identity;
@@ -16,7 +15,7 @@ internal sealed class CreateTodoHandler(
     {
         if (userContext.UserId != command.UserId)
         {
-            return Result.Failure<Guid>(UserErrors.Unauthorized());
+            return Result.Failure<Guid>(TodoItemErrors.Unauthorized());
         }
 
         User? user = await context.Users.AsNoTracking()
@@ -24,7 +23,7 @@ internal sealed class CreateTodoHandler(
 
         if (user is null)
         {
-            return Result.Failure<Guid>(UserErrors.NotFound(command.UserId));
+            return Result.Failure<Guid>(TodoItemErrors.UserNotFound(command.UserId));
         }
 
         var todoItem = new TodoItem
