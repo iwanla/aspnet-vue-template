@@ -177,8 +177,10 @@ error catalog. The latter two retain legacy `Users.*` codes, descriptions, and e
 types for API compatibility; those strings do not imply a dependency on Users.
 Create `Common/Errors/` only for genuinely domain-neutral shared errors.
 
-Do not create a generic `Extensions/` folder for wiring. Reserve that name, if
-needed later, for pure type helpers; keep capability-specific extensions local.
+`Common/Extensions/` contains pure type helpers (`StringExtensions` and
+`IEnumerableExtensions`), not wiring or business rules. Keep capability-specific
+extensions local to their capability. Prefer built-in string/LINQ operations when
+they already express the intended behavior directly.
 
 Do not move business logic into shared infrastructure merely to make it callable
 from another feature. A new cross-feature collaboration requires an explicit
