@@ -67,6 +67,11 @@
     <InternalsVisibleTo Include="AspNetVue.Server.ArchitectureTests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Remove="Features/**/Resources/*.json" />
+    <EmbeddedResource Include="Features/**/Resources/*.json" WithCulture="false" />
+  </ItemGroup>
+
   <!-- Prod: `bun run build` in the client outputs straight into wwwroot/ (see vite.config.ts outDir).
        wwwroot/ is auto-published as static files. No custom DistFiles needed.
        NOTE: `dotnet publish` does NOT build the client — run `bun run build` first

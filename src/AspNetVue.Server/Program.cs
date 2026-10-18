@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 using AspNetVue.Server;
 using AspNetVue.Server.Common.Endpoints;
+using AspNetVue.Server.Common.Localization;
 using AspNetVue.Server.Common.RateLimiting;
 using AspNetVue.Server.Common.OpenApi;
 using AspNetVue.Server.Common.Telemetry;
@@ -16,6 +17,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((context, loggerConfig) => loggerConfig.ReadFrom.Configuration(context.Configuration));
 
 builder.Services.AddOpenApiWithAuth();
+builder.Services.AddJsonLocalization();
 
 builder.Services
     .AddApplication()
@@ -58,6 +60,8 @@ app.UseRequestContextLogging();
 app.UseSerilogRequestLogging();
 
 app.UseExceptionHandler();
+
+app.UseRequestLocalization();
 
 app.UseStaticFiles();
 

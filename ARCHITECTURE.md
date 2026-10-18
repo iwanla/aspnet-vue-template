@@ -167,7 +167,7 @@ Organize `Common/` by capability; no source types belong directly in its root:
 - `Messaging/`: minimal command/query markers and handler contracts, without a mediator.
 - `Behaviors/`: logging and validation handler decorators.
 - `Endpoints/` and `Middleware/`: shared HTTP mechanisms.
-- `OpenApi/`, `RateLimiting/`, `Telemetry/`, and `Time/`: their respective capabilities,
+- `Localization/`, `OpenApi/`, `RateLimiting/`, `Telemetry/`, and `Time/`: their respective capabilities,
   with capability-specific extensions kept beside the types they configure.
 
 User-record errors belong to `Features/Users/UserErrors`; credential/session errors
@@ -286,6 +286,35 @@ execution mechanisms. Business decisions about using them remain with the caller
 
 New providers should implement the relevant integration boundary and be wired at
 composition time, rather than embedding provider-specific behavior into endpoints.
+
+## Server localization
+
+**Location:** `Common/Localization/`; feature-owned `Resources/{culture}.json` files.
+
+The server uses JSON exclusively for localized, server-generated text such as email,
+PDFs, and notifications. UI translations remain client-owned; resource files are not
+shared merely because their text is similar. Existing API error codes/descriptions
+are not translated by this infrastructure.
+
+`AddJsonLocalization()` installs the singleton JSON factory and configures request
+culture selection using only `Accept-Language`. English (`en`) is the default and
+Indonesian (`id`) is also supported. Regional variants negotiate their supported
+parent; unsupported languages fall back to English. `Program.cs` installs request
+localization before request consumers. No user locale/database lookup is involved.
+
+The factory resolves the nearest resource-owning namespace for `IStringLocalizer<T>`
+using assembly metadata, not feature references. JSON is embedded in the server
+assembly, so it ships with build/publish output without exposing resource files as
+static assets. There is no file watcher or hot reload; edits require a rebuild.
+
+Catalogs are immutable and loaded once per assembly/resource owner/culture through
+thread-safe lazy caching. Lookup reads `CurrentUICulture` at call time and follows
+its parents, then the configured default culture and its parents. Default fallback
+and missing keys log warnings. A completely missing key returns its name with
+`ResourceNotFound = true`; successful fallback is not reported as missing.
+Formatting uses `CurrentCulture` and `{0}`-style placeholders. `GetAllStrings(false)`
+enumerates only the current UI culture; `true` merges the full fallback chain with
+the closest culture taking precedence. Invalid JSON catalogs fail explicitly.
 
 ## Client layers and hosting boundary
 

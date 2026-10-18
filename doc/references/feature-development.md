@@ -113,6 +113,33 @@ Keep errors feature-local unless genuinely shared. `CustomResults.Problem` maps
 failures to 500. Authentication/permission 401/403 responses come from middleware;
 do not assume an error named “Unauthorized” automatically maps to HTTP 403.
 
+### Localize server-generated text
+
+For email, PDF, or notification text, add flat JSON string catalogs under the
+owning feature, for example `Features/Notes/Resources/en.json` and `id.json`:
+
+```json
+{
+  "notes.notification.created": "Note {0} was created."
+}
+```
+
+Use the same stable `<feature>.<usecase>.<key>` keys and placeholders in every locale.
+Inject `IStringLocalizer<T>` from `Microsoft.Extensions.Localization`, where `T` is
+the consuming handler or a feature-owned resource marker. The factory walks the
+type's namespace toward its parents and uses the nearest `Resources/` owner:
+
+```csharp
+string message = localizer["notes.notification.created", note.Title];
+```
+
+Feature resource JSON files are embedded automatically; do not add `.resx`, client
+UI strings, or HTML markup with unescaped user input. Catalog edits require a
+rebuild. Add tests ensuring locale keys/placeholders match and fallback works.
+`Common/Localization` must never reference concrete feature types. For background
+work without a request, establish the recipient's culture explicitly; the request
+header is not a persisted user preference.
+
 ## 3. Declare permissions and discovery metadata
 
 **`Features/Notes/NotesPermissions.cs`**
