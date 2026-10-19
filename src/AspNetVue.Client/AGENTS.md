@@ -41,7 +41,7 @@ Paths are relative to this project. `{feature}` is a placement pattern, not a li
 - Preserve `strict`, `noUnusedLocals`, and `noUnusedParameters` in `tsconfig.json`; do not weaken them to silence errors.
 - Prefer inferred local types; explicitly type API contracts and component boundaries. Use `import type` for type-only dependencies.
 - Use `unknown` for unvalidated data and narrow it before access; avoid escaping checks with `any` or unchecked assertions. Narrow caught errors with `instanceof Error`, as in `HealthView.vue`.
-- `shared/api/http.ts` exposes `getJson<T = unknown>()`, but its `as T` does not validate JSON at runtime. Supplying a generic describes an expected contract, not a runtime guarantee.
+- Use `http` from `shared/api/http.ts` for ordinary API calls; `requestJson` is the low-level non-throwing HTTP-status path. Generic types describe expected contracts, not runtime validation. Strict methods return `T | null` for empty responses or JSON null. See `doc/references/client-http.md` at the repository root.
 
 ## Vue conventions
 
@@ -59,7 +59,7 @@ Paths are relative to this project. `{feature}` is a placement pattern, not a li
 ## Testing instructions
 
 - Run both type-check and build after client changes; .NET builds do not check this package.
-- No client test runner or lint script is configured; do not assume `bun test` or `bun run lint` verifies this app.
+- Run `bun run test` for transport unit tests (Node.js 22.18+ with native TypeScript stripping). `type-check` also checks test sources. No lint script is configured.
 - Build output goes directly to `../AspNetVue.Server/wwwroot`, emptying that directory. Do not place source files or hand-edited assets there.
 
 ## Security considerations

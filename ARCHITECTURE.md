@@ -334,6 +334,14 @@ component boundaries, not by a requirement to put all state in a global store.
 Typed API models describe expectations but do not validate JSON at runtime.
 Client permissions control presentation only; the server remains authoritative.
 
+Client API calls use the shared fetch transport in `src/shared/api/http.ts`.
+Ordinary calls reject non-success HTTP statuses with `HttpError` and malformed
+success JSON with `InvalidJsonResponseError`; empty responses are explicitly nullable.
+The low-level `requestJson` retains status, headers, and raw bodies so diagnostic
+features can inspect non-success reports. Transport owns serialization, timeout,
+and cancellation, not token storage/refresh, redirects, automatic retries, or business
+error presentation. See [Client HTTP Guide](doc/references/client-http.md).
+
 Development uses the client dev server's `/api` proxy to reach the API. Production
 builds client assets into server `wwwroot`, then the server serves static files and
 the history-routing fallback. This shares a deployment artifact, not business
