@@ -4,7 +4,8 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 // Dev server: http://localhost:5173 (sesuai SpaProxyServerUrl di .csproj).
-// /api diproxy ke ASP.NET Core http://localhost:5000 agar tanpa CORS saat dev.
+// /api, /scalar, dan /openapi diproxy ke ASP.NET Core http://localhost:5000 agar tanpa CORS saat dev
+// dan agar halaman Scalar/OpenAPI bisa dibuka dari origin SPA.
 export default defineConfig({
   plugins: [vue()],
   resolve: {
@@ -16,8 +17,17 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     proxy: {
-      // Server API routes (under the /api prefix) are proxied to ASP.NET Core to avoid CORS in dev.
+      // Rute API server (di bawah prefix /api) diproxy ke ASP.NET Core agar dev tanpa CORS.
       '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true
+      },
+      // Dokumentasi API yang hanya di-map saat Development.
+      '/scalar': {
+        target: 'http://localhost:5000',
+        changeOrigin: true
+      },
+      '/openapi': {
         target: 'http://localhost:5000',
         changeOrigin: true
       }

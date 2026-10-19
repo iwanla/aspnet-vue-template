@@ -19,6 +19,7 @@ Paths are relative to this project. `{feature}` is a placement pattern, not a li
 | `src/features/{feature}/` | Feature views and their feature-specific components, state, API contracts, and composables as needed. Keep code local until it is genuinely reusable. |
 | `src/shared/` | Feature-independent UI/logic reusable across features; avoid importing feature code back into shared utilities. |
 | `src/shared/api/` | Shared HTTP transport helpers and response/error handling; feature-specific workflows/contracts stay with their feature. |
+| `public/` | Assets copied verbatim into the build output, such as `favicon.svg`; not application logic. |
 | `src/vite-env.d.ts` | Vite environment type references; not application logic or runtime configuration values. |
 | `vite.config.ts` | Build/dev-server integration: aliases, API proxy, and server asset output. |
 | `tsconfig*.json` | App/tooling compiler boundaries and type-safety policy; not runtime behavior. |
