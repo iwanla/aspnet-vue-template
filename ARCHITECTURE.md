@@ -231,9 +231,10 @@ and a global query filter (`DeletedAt IS NULL`) hides it from every query. Conse
 - Reserve `IgnoreQueryFilters()` for explicit audits/administration, never for business reads.
 - Unique indexes on audited tables are partial (`WHERE deleted_at IS NULL`), so a value is
   reusable once the row that held it is soft-deleted.
-- Join entities (`UserRole`, `RolePermission`) are not audited and still hard-delete, so a
-  soft-deleted principal can leave join rows behind; authorization reads go through the
-  filtered principal and never through the join alone.
+- Join entities (`UserRole`, `RolePermission`) are not audited and still hard-delete.
+  Matching query filters hide `UserRole` when its user or role is soft-deleted, and
+  `RolePermission` when its role or permission is soft-deleted. Persisted join rows
+  may remain, but direct queries and required-navigation queries agree on visibility.
 
 ## Authentication and authorization
 

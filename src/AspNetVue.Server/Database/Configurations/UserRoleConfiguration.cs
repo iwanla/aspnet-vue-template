@@ -14,9 +14,12 @@ internal sealed class UserRoleConfiguration : IEntityTypeConfiguration<UserRole>
             .WithMany()
             .HasForeignKey(userRole => userRole.RoleId);
 
-        builder.HasOne<User>()
+        builder.HasOne(userRole => userRole.User)
             .WithMany()
             .HasForeignKey(userRole => userRole.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasQueryFilter(userRole =>
+            userRole.User.DeletedAt == null && userRole.Role.DeletedAt == null);
     }
 }
