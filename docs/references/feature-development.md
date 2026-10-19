@@ -45,6 +45,42 @@ Do not create empty request/response/validator types just to fill out the tree.
 | Handler | Internal sealed implementation of the matching handler interface. Inject dependencies, pass cancellation tokens to I/O, return expected errors as results. |
 | Response | An explicit API projection, not an EF entity or `IQueryable`. |
 
+### Shared capabilities and composition
+
+Organize `Common/` by capability; no source types belong directly in its root:
+
+- `Domain/`: `Entity`, `BaseEntity`, and domain-event contracts. `Entity` supplies
+  event collection; `BaseEntity` adds identity, auditing, and soft-delete state.
+- `Results/`: results, errors, validation errors, pagination, and result/HTTP helpers.
+- `Messaging/`: command/query markers and handler contracts, without a mediator.
+- `Behaviors/`: logging and validation handler decorators.
+- `Endpoints/` and `Middleware/`: shared HTTP mechanisms.
+- `Localization/`, `OpenApi/`, `RateLimiting/`, `Telemetry/`, and `Time/`: their
+  respective capabilities, including their capability-specific extensions.
+- `Extensions/`: pure type helpers (`StringExtensions` and `IEnumerableExtensions`),
+  not wiring or business rules. Prefer built-in string/LINQ operations when sufficient.
+
+User-record errors belong to `Features/Users/UserErrors`; credential/session errors
+belong to `Features/Identity/IdentityErrors`; Todo precondition errors belong to
+`Features/Todos/TodoItemErrors`. The latter two retain legacy `Users.*` codes,
+descriptions, and error types for API compatibility; those strings do not imply a
+dependency on Users. Create `Common/Errors/` only for domain-neutral shared errors.
+
+`DependencyInjection.cs` composes three registration groups:
+
+- `AddApplication()` discovers scoped command/query handlers, validators, and
+  domain-event handlers, then applies handler decorators. Validation is registered
+  before logging so logging wraps validation. Queries have logging but no automatic
+  validation decorator.
+- `AddPresentation()` configures HTTP services such as exception handling and API
+  versioning. Endpoints implement `IEndpoint` and are assembly-scanned.
+- `AddInfrastructure()` connects persistence, authentication, authorization, and
+  integrations to configuration, including permission-catalog discovery.
+
+Server-root `Hosting/` contains composition helpers for middleware, migrations,
+OpenAPI route mapping, and CORS. Capability-specific registration stays with its
+capability; ordinary features must not require branches in shared startup code.
+
 ## 2. Define feature-owned state and mappings
 
 The example stores a caller-owned note. It uses the shared identity entity only
@@ -94,6 +130,9 @@ redeclare them. Deletes are soft by default: `Remove` records `DeletedAt` and th
 global query filter hides the row, so write `DeleteNote` like any other delete and do
 not add `IsDeleted` checks to queries.
 
+See [Persistence](persistence.md) for mapping discovery, audit stamping, uniqueness,
+join visibility, and domain-event delivery details.
+
 **`Features/Notes/NotesErrors.cs`**
 
 ```csharp
@@ -115,32 +154,9 @@ do not assume an error named “Unauthorized” automatically maps to HTTP 403.
 
 ### Localize server-generated text
 
-For email, PDF, or notification text, add a feature-owned marker and matching RESX
-files side by side, for example:
-
-```text
-Features/Notes/
-  NotesResources.cs          public sealed class NotesResources;
-  NotesResources.resx        Neutral English strings
-  NotesResources.id.resx     Indonesian strings
-```
-
-Use the same stable `<feature>.<usecase>.<key>` keys and placeholders in every locale.
-Inject `IStringLocalizer<NotesResources>` from `Microsoft.Extensions.Localization`.
-The marker namespace must match the resource's folder; the built-in factory does
-not walk namespace parents. Do not configure a global `ResourcesPath`:
-
-```csharp
-string message = localizer["notes.notification.created", note.Title];
-```
-
-The .NET SDK embeds `.resx` automatically and publishes translated satellite
-assemblies. Keep client UI strings separate, and do not put HTML markup with
-unescaped user input in resources. Resource edits require a
-rebuild. Add tests ensuring locale keys/placeholders match and fallback works.
-`Common/Localization` must never reference concrete feature types. For background
-work without a request, establish the recipient's culture explicitly; the request
-header is not a persisted user preference.
+For email, PDF, or notification text, follow [Server Localization](server-localization.md)
+for feature-owned markers/resources, culture selection, fallback, and verification.
+Client UI strings remain separate; existing API errors are not translated.
 
 ## 3. Declare permissions and discovery metadata
 
@@ -179,6 +195,9 @@ Add `RoleNames.User` only when the access requirements call for it. Seeded grant
 are additive: deleting a definition or removing a default role does not revoke
 existing grants. Invalidate affected `IPermissionProvider` entries after changing
 persisted role membership/grants.
+
+See [Authentication and Authorization](authentication-authorization.md) for policy
+resolution, cache behavior, and startup initialization semantics.
 
 Add `public const string Notes = "Notes";` to `Common/Endpoints/Tags.cs`. This is
 HTTP documentation metadata, not a reverse dependency on feature types.

@@ -17,8 +17,8 @@ Use these boundaries when deciding where a change belongs:
 | `Directory.Build.props` | Shared .NET target framework, compiler, and analyzer policy. |
 | `Directory.Packages.props` | Central NuGet version ownership; do not scatter versions across projects. |
 | `docker-compose.yml` | Local service topology, networking, ports, and persistent volumes. |
-| `ARCHITECTURE.md` | Cross-cutting design decisions and dependency rules; keep detailed rationale here rather than expanding agent instructions. |
-| `doc/references/` | Implementation recipes for recurring development tasks; `feature-development.md` explains how to build server features/use cases. |
+| `ARCHITECTURE.md` | Application boundaries, dependency rules, and execution guarantees; not detailed implementation recipes. |
+| `docs/references/` | Implementation mechanisms and recipes; `feature-development.md` explains how to build server features/use cases. |
 
 ## Scope and setup
 

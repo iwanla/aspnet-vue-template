@@ -73,21 +73,15 @@ The composition root selects implementations, configures lifetimes, installs
 cross-cutting services, and connects routes and middleware. It must not implement
 business workflows.
 
-- `AddApplication()` discovers scoped command/query handlers, validators, and
-  domain-event handlers, then applies handler decorators.
-- `AddPresentation()` configures HTTP-facing services such as exception handling
-  and API versioning.
-- `AddInfrastructure()` connects persistence, authentication, authorization, and
-  integrations to configuration.
-- Endpoint and permission-catalog discovery allows new slices to participate
-  without adding a per-feature branch to startup code.
-
 Shared services depend on contracts or generic discovery mechanisms. Their source
 code should remain unchanged when an ordinary feature is added or removed.
+Endpoint, handler, mapping, and permission-catalog discovery connects ordinary
+slices without feature-specific startup branches.
 
-`Hosting/` contains composition helpers for middleware, migrations, OpenAPI route
-mapping, and CORS. Capability-specific service registration stays with its
-capability, such as `Common/OpenApi`, `Common/RateLimiting`, and `Common/Telemetry`.
+`Hosting/` contains helpers that connect server areas. Capability-specific service
+registration stays with its capability. Registration groups, discovery, and
+decorator composition are described in the
+[Feature Development Guide](docs/references/feature-development.md#shared-capabilities-and-composition).
 
 ## Presentation boundary
 
@@ -99,10 +93,9 @@ version metadata and access requirements, invoking a handler, and translating it
 result into an HTTP response. It must not own persistence operations or duplicate
 the handler's business decisions.
 
-Endpoints implement `IEndpoint` and are discovered by assembly scan. They resolve
-`ICommandHandler` or `IQueryHandler` directly rather than sending through MediatR.
-Handlers return `Result`/`Result<T>`; endpoints translate expected failures through
-`CustomResults.Problem`. Unexpected exceptions use the global exception handler.
+Endpoints invoke command/query handler interfaces directly, without a mediator.
+Handlers return `Result`/`Result<T>`; endpoints translate expected failures into
+HTTP responses. Unexpected exceptions use the global exception handler.
 Authentication challenges and authorization failures remain framework concerns.
 
 The host groups business endpoints under a versioned `/api` boundary. Health is
@@ -127,9 +120,6 @@ HTTP responses, read transport headers, or make decisions about UI rendering.
 - FluentValidation validators belong to the operation and check command input.
   State-dependent invariants and ownership checks still belong in handlers/domain
   behavior; input validation alone does not establish permission to access a record.
-- The registered command chain is `Logging -> Validation -> Handler`. Logging is
-  registered after validation and wraps it. Queries have logging decoration but
-  no automatic validation decorator.
 - An operation may use `ApplicationDbContext` and `HybridCache` directly. Do not
   describe these handlers as infrastructure-independent or introduce a mandatory
   repository layer that the application does not have.
@@ -159,28 +149,10 @@ Ownership determines placement:
 | Error used across feature boundaries | `Common/Errors/`, without importing feature types. |
 | Generic result, event, time, or messaging contract | `Common/`, without business workflow knowledge. |
 
-Organize `Common/` by capability; no source types belong directly in its root:
-
-- `Domain/`: `Entity`, `BaseEntity`, and domain-event contracts. `Entity` supplies
-  event collection; `BaseEntity` adds identity, auditing, and soft-delete state.
-- `Results/`: results, errors, validation errors, pagination, and result/HTTP helpers.
-- `Messaging/`: minimal command/query markers and handler contracts, without a mediator.
-- `Behaviors/`: logging and validation handler decorators.
-- `Endpoints/` and `Middleware/`: shared HTTP mechanisms.
-- `Localization/`, `OpenApi/`, `RateLimiting/`, `Telemetry/`, and `Time/`: their respective capabilities,
-  with capability-specific extensions kept beside the types they configure.
-
-User-record errors belong to `Features/Users/UserErrors`; credential/session errors
-belong to `Features/Identity/IdentityErrors`; Todo precondition errors belong to
-`Features/Todos/TodoItemErrors`. Similar failures do not require a shared business
-error catalog. The latter two retain legacy `Users.*` codes, descriptions, and error
-types for API compatibility; those strings do not imply a dependency on Users.
-Create `Common/Errors/` only for genuinely domain-neutral shared errors.
-
-`Common/Extensions/` contains pure type helpers (`StringExtensions` and
-`IEnumerableExtensions`), not wiring or business rules. Keep capability-specific
-extensions local to their capability. Prefer built-in string/LINQ operations when
-they already express the intended behavior directly.
+Organize `Common/` by capability, with no source types directly in its root.
+Keep capability-specific extensions local; general type helpers must remain pure,
+without wiring or business rules. The capability inventory and compatibility notes
+belong in the [Feature Development Guide](docs/references/feature-development.md#shared-capabilities-and-composition).
 
 Do not move business logic into shared infrastructure merely to make it callable
 from another feature. A new cross-feature collaboration requires an explicit
@@ -195,46 +167,24 @@ handler or entity.
 domain-event dispatch after saving. PostgreSQL is the durable source of truth;
 migrations describe versioned schema transitions.
 
-The context exposes named DbSets only for shared identity/access entities. Handlers
-use `context.Set<T>()` for feature entities so `Database` does not reference
-`Features`. `ApplyConfigurationsFromAssembly` discovers both shared and
-feature-owned mappings. Feature mappings must explicitly preserve intended table
-names rather than relying on a feature DbSet property to provide them.
+Feature entities are accessed generically and their mappings are discovered, so
+the context does not depend on concrete feature types.
 
-The event flow is:
-
-```text
-Entity raises event -> DbContext extracts/clears pending events
-                    -> EF SaveChangesAsync succeeds
-                    -> Dispatcher resolves handlers in new scopes and awaits them
-```
-
-This is in-process, post-save dispatch, not a transactional outbox or durable queue.
+Domain-event delivery is in-process, post-save dispatch, not a transactional outbox
+or durable queue.
 Event handlers do not share the originating context's unit of work. If dispatch
 fails after the database save succeeds, persisted data is not automatically rolled
 back, and delivery/retry is not guaranteed. Do not rely on it for atomic external
 side effects without changing the persistence/delivery design explicitly.
 
-## Auditing and soft delete
+Auditing and soft delete are persistence responsibilities, not per-handler
+workflows. Audited entities are hidden from normal reads after deletion, and their
+unique values can be reused. Access joins remain hard-deleted and their query
+visibility follows the active identity/access records. Business reads must not
+bypass soft-delete filters.
 
-**Locations:** `Common/Domain/BaseEntity` for the audited base type; `Database/ApplicationDbContext` for stamping and filtering.
-
-`BaseEntity` is the base for persisted, audited entities. It adds `Id`, the
-create/update columns, actor id/name columns, and `DeletedAt`. `ApplicationDbContext`
-stamps them from `IDateTimeProvider` and `IUserContext` before saving, so handlers do
-not set `CreatedAt`/`UpdatedAt` and must not add their own audit columns. The actor is
-null for work without an authenticated request, such as seeding or registration.
-
-Deletes are soft: a `Removed` entity is rewritten to `Modified` with `DeletedAt` set,
-and a global query filter (`DeletedAt IS NULL`) hides it from every query. Consequences:
-
-- Reserve `IgnoreQueryFilters()` for explicit audits/administration, never for business reads.
-- Unique indexes on audited tables are partial (`WHERE deleted_at IS NULL`), so a value is
-  reusable once the row that held it is soft-deleted.
-- Join entities (`UserRole`, `RolePermission`) are not audited and still hard-delete.
-  Matching query filters hide `UserRole` when its user or role is soft-deleted, and
-  `RolePermission` when its role or permission is soft-deleted. Persisted join rows
-  may remain, but direct queries and required-navigation queries agree on visibility.
+See [Persistence](docs/references/persistence.md) for mappings, audit stamping,
+query filters, partial indexes, and the event-dispatch sequence.
 
 ## Authentication and authorization
 
@@ -245,12 +195,8 @@ Authentication establishes identity. Token/password mechanisms live behind share
 interfaces; application code obtains the caller through `IUserContext` rather than
 parsing HTTP claims independently. JWTs carry identity, not permission grants.
 
-Authorization decides whether an identity has a capability:
-
-```text
-Endpoint permission metadata -> Dynamic policy -> Authorization handler
-                            -> Permission provider -> Cache / database
-```
+Authorization resolves endpoint permission requirements against database-backed
+role membership and grants.
 
 - Features own permission constants and implement `IPermissionCatalog` using shared
   `PermissionDefinition` contracts. Assembly discovery keeps `Authorization`
@@ -258,18 +204,13 @@ Endpoint permission metadata -> Dynamic policy -> Authorization handler
 - The database holds role membership and permission grants. Roles group grants;
   endpoints check permissions, not role names. Record ownership and business
   preconditions remain application responsibilities even after a permission passes.
-- Permission resolution is memoized per request and cached across requests.
-  Membership/grant mutations must invalidate affected permission cache entries;
-  expiration is a fallback freshness bound, not a substitute for invalidation.
-- Permission lookup failures deny access. The current provider uses HybridCache
-  directly; it has no separate explicit cache-failure-to-database fallback path.
-- Startup seeding adds missing catalog permissions and grants. Removing a catalog
-  entry does not by itself revoke persisted grants or delete permissions.
+- Membership/grant mutations must invalidate affected permission caches; expiration
+  alone is not a substitute for invalidation. Permission lookup failures deny access.
 
-The startup initializer applies migrations only in Development and attempts seeding
-on startup. It logs and catches initialization failures, so a running host is not
-proof of a successfully initialized database. Production migration/configuration
-is a deployment responsibility.
+See [Authentication and Authorization](docs/references/authentication-authorization.md)
+for policy resolution, cache behavior, additive seeding, and initialization failures.
+Production migrations/configuration are deployment responsibilities; a running
+host is not proof of successful database initialization.
 
 ## Integrations and cross-cutting infrastructure
 
@@ -297,27 +238,10 @@ PDFs, and notifications. UI translations remain client-owned; resource files are
 shared merely because their text is similar. Existing API error codes/descriptions
 are not translated by this infrastructure.
 
-`AddServerLocalization()` registers `AddLocalization()` and configures request
-culture selection using only `Accept-Language`. English (`en`) is the default and
-Indonesian (`id`) is also supported. Regional variants negotiate their supported
-parent; unsupported languages fall back to English. `Program.cs` installs request
-localization before request consumers. No user locale/database lookup is involved.
-
-Inject `IStringLocalizer<IdentityResources>` (or another feature-owned marker), with
-the marker and matching `.resx` files side by side in the feature namespace. There
-is no namespace-parent discovery or custom factory. The neutral file contains
-English; `.id.resx` contains Indonesian. SDK defaults embed neutral resources in
-the main assembly and translations in satellite assemblies, included in build and
-publish output. Do not configure `ResourcesPath` for this colocated layout.
-
-The built-in resource manager handles caching and culture-parent fallback, ending
-at the neutral English resources. This fallback is independent of the configured
-request default culture. Lookup uses `CurrentUICulture`; formatting uses
-`CurrentCulture` and `{0}`-style placeholders. Missing keys return their names with
-`ResourceNotFound = true`; successful fallback is not missing. Custom warning logs
-are no longer provided. `GetAllStrings(true)` merges parents and neutral resources;
-`false` excludes parents and can throw if the exact culture has no resource set.
-Resource edits require a rebuild. Keep keys and placeholders aligned across locales.
+Shared infrastructure selects request culture; features own resource content.
+Culture selection does not imply a persisted user preference. Resource layout,
+supported cultures, lookup/fallback, and verification are documented in
+[Server Localization](docs/references/server-localization.md).
 
 ## Client layers and hosting boundary
 
@@ -336,12 +260,9 @@ Typed API models describe expectations but do not validate JSON at runtime.
 Client permissions control presentation only; the server remains authoritative.
 
 Client API calls use the shared fetch transport in `src/shared/api/http.ts`.
-Ordinary calls reject non-success HTTP statuses with `HttpError` and malformed
-success JSON with `InvalidJsonResponseError`; empty responses are explicitly nullable.
-The low-level `requestJson` retains status, headers, and raw bodies so diagnostic
-features can inspect non-success reports. Transport owns serialization, timeout,
-and cancellation, not token storage/refresh, redirects, automatic retries, or business
-error presentation. See [Client HTTP Guide](doc/references/client-http.md).
+Transport owns serialization, timeout, and cancellation, not session management,
+navigation, retry policy, or business error presentation. Response/error contracts
+and usage are documented in [Client HTTP](docs/references/client-http.md).
 
 Development uses the client dev server's `/api` proxy to reach the API. Production
 builds client assets into server `wwwroot`, then the server serves static files and
@@ -357,7 +278,7 @@ and integration calls only where that feature needs them. Generic discovery shou
 connect them without feature-specific changes to shared infrastructure.
 
 For the implementation recipe and complete command/query templates, read
-[Feature Development Guide](doc/references/feature-development.md).
+[Feature Development Guide](docs/references/feature-development.md).
 
 Changing a workflow, granting a new capability, adding a table, or adding a page
 does not by itself change these layer responsibilities. Document workflow details
@@ -381,13 +302,7 @@ changed, why it changed, and how enforcement changes with it.
 - Client checks run independently of the .NET solution. Build and test commands,
   tooling quirks, and environment prerequisites live in the relevant `AGENTS.md`.
 
-Implementation anchors:
-
-| Base path | Files / directories | Source of truth for |
-| --- | --- | --- |
-| `src/AspNetVue.Server/` | `Program.cs`, `DependencyInjection.cs`, `Hosting/` | Composition, discovery, and decorator order. |
-| `src/AspNetVue.Server/` | `Common/Endpoints/`, `Common/Messaging/`, `Common/Behaviors/` | Transport-to-application contracts and shared execution. |
-| `src/AspNetVue.Server/` | `Database/ApplicationDbContext.cs`, `Database/DomainEventsDispatcher.cs` | Persistence and event-delivery semantics. |
-| `src/AspNetVue.Server/` | `Authorization/` | Policy resolution, permission caching, and catalog initialization. |
-| `src/AspNetVue.Client/` | `src/main.ts`, `src/app/`, `vite.config.ts` | Client composition and hosting boundary. |
-| `tests/AspNetVue.Server.ArchitectureTests/` | `Layers/LayerTests.cs` | Executable dependency rules and their current coverage. |
+Implementation and executable tests remain the source of truth for current
+behavior. References explain mechanisms and recipes; this document owns the
+application's boundaries and guarantees. Update the relevant reference when a
+mechanism changes, and this document when its architectural contract changes.

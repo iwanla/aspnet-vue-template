@@ -41,7 +41,7 @@ Paths are relative to this project. `{feature}` is a placement pattern, not a li
 - Preserve `strict`, `noUnusedLocals`, and `noUnusedParameters` in `tsconfig.json`; do not weaken them to silence errors.
 - Prefer inferred local types; explicitly type API contracts and component boundaries. Use `import type` for type-only dependencies.
 - Use `unknown` for unvalidated data and narrow it before access; avoid escaping checks with `any` or unchecked assertions. Narrow caught errors with `instanceof Error`, as in `HealthView.vue`.
-- Use `http` from `shared/api/http.ts` for ordinary API calls; `requestJson` is the low-level non-throwing HTTP-status path. Generic types describe expected contracts, not runtime validation. Strict methods return `T | null` for empty responses or JSON null. See `doc/references/client-http.md` at the repository root.
+- Use `http` from `shared/api/http.ts` for ordinary API calls; `requestJson` is the low-level non-throwing HTTP-status path. Generic types describe expected contracts, not runtime validation. Strict methods return `T | null` for empty responses or JSON null. See `docs/references/client-http.md` at the repository root.
 
 ## Vue conventions
 

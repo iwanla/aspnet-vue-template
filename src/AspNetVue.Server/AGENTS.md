@@ -65,7 +65,7 @@ Paths are relative to this project. `{Domain}` and `{UseCase}` are placement pat
 
 ## Feature implementation guide
 
-- Before creating or changing a feature/use case, read [`doc/references/feature-development.md`](../../doc/references/feature-development.md) from the repository root. It provides file responsibilities, command/query/endpoint templates, discovery rules, security checks, and verification steps; do not infer the pattern by copying a feature blindly.
+- Before creating or changing a feature/use case, read [`docs/references/feature-development.md`](../../docs/references/feature-development.md) from the repository root. It provides file responsibilities, command/query/endpoint templates, discovery rules, security checks, and verification steps; do not infer the pattern by copying a feature blindly.
 
 ## Testing instructions
 

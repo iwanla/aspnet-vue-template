@@ -1,5 +1,8 @@
 # Client HTTP
 
+For client/server responsibilities and deployment boundaries, see
+[Application Architecture](../../ARCHITECTURE.md).
+
 Use `http` from `@/shared/api/http` for feature API calls. Keep response contracts
 and runtime validation with the feature; generics do not validate server data.
 No extra HTTP dependency is required.

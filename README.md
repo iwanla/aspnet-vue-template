@@ -123,7 +123,7 @@ name supplied to `dotnet new`.
 | `src/AspNetVue.Server/` | API, application slices, persistence, shared infrastructure, and SPA hosting. |
 | `src/AspNetVue.Client/` | Browser UI, navigation, client state, and API consumption. |
 | `tests/` | Unit, HTTP/database integration, and dependency-boundary tests. |
-| `doc/references/` | Practical development recipes, including feature implementation. |
+| `docs/references/` | Implementation references and practical development recipes. |
 | `ARCHITECTURE.md` | Layer responsibilities, dependency rules, and execution guarantees. |
 | `Directory.Build.props` | Shared .NET target framework and build/analyzer policy. |
 | `Directory.Packages.props` | Central NuGet package versions. |
@@ -220,8 +220,12 @@ dotnet new uninstall AspNetVue.Template
 ## Development documentation
 
 - [Application architecture](ARCHITECTURE.md): stable layer boundaries and design.
-- [Feature development guide](doc/references/feature-development.md): step-by-step
+- [Feature development guide](docs/references/feature-development.md): step-by-step
   templates for implementing server use cases without copying an existing feature.
+- [Persistence](docs/references/persistence.md): mappings, auditing, soft delete, and domain events.
+- [Authentication and authorization](docs/references/authentication-authorization.md): permission resolution, caching, and initialization.
+- [Server localization](docs/references/server-localization.md): RESX resources, culture selection, and fallback.
+- [Client HTTP](docs/references/client-http.md): shared transport usage and response/error contracts.
 - [Repository agent instructions](AGENTS.md), [server instructions](src/AspNetVue.Server/AGENTS.md),
   and [client instructions](src/AspNetVue.Client/AGENTS.md): scoped conventions and
   focused verification commands.
