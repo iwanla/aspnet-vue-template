@@ -78,7 +78,7 @@ public sealed class LocalizationTests
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapGet("localization-probe", (IStringLocalizer<UserRegisteredDomainEvent> localizer) =>
+            app.MapGet("localization-probe", (IStringLocalizer<IdentityResources> localizer) =>
                 Results.Ok(new ProbeResponse(
                     CultureInfo.CurrentCulture.Name,
                     CultureInfo.CurrentUICulture.Name,

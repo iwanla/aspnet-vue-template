@@ -1,18 +1,15 @@
 using Microsoft.AspNetCore.Localization;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Localization;
 
 namespace AspNetVue.Server.Common.Localization;
 
-public static class JsonLocalizationServiceExtensions
+public static class LocalizationServiceExtensions
 {
-    /// <summary>Registers embedded JSON resources and Accept-Language culture selection.</summary>
-    public static IServiceCollection AddJsonLocalization(
+    /// <summary>Registers RESX localization and Accept-Language culture selection.</summary>
+    public static IServiceCollection AddServerLocalization(
         this IServiceCollection services,
         Action<RequestLocalizationOptions>? configure = null)
     {
         services.AddLocalization();
-        services.Replace(ServiceDescriptor.Singleton<IStringLocalizerFactory, JsonStringLocalizerFactory>());
         services.Configure<RequestLocalizationOptions>(options =>
         {
             options.DefaultRequestCulture = new RequestCulture("en");

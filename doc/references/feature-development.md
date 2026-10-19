@@ -115,26 +115,28 @@ do not assume an error named “Unauthorized” automatically maps to HTTP 403.
 
 ### Localize server-generated text
 
-For email, PDF, or notification text, add flat JSON string catalogs under the
-owning feature, for example `Features/Notes/Resources/en.json` and `id.json`:
+For email, PDF, or notification text, add a feature-owned marker and matching RESX
+files side by side, for example:
 
-```json
-{
-  "notes.notification.created": "Note {0} was created."
-}
+```text
+Features/Notes/
+  NotesResources.cs          public sealed class NotesResources;
+  NotesResources.resx        Neutral English strings
+  NotesResources.id.resx     Indonesian strings
 ```
 
 Use the same stable `<feature>.<usecase>.<key>` keys and placeholders in every locale.
-Inject `IStringLocalizer<T>` from `Microsoft.Extensions.Localization`, where `T` is
-the consuming handler or a feature-owned resource marker. The factory walks the
-type's namespace toward its parents and uses the nearest `Resources/` owner:
+Inject `IStringLocalizer<NotesResources>` from `Microsoft.Extensions.Localization`.
+The marker namespace must match the resource's folder; the built-in factory does
+not walk namespace parents. Do not configure a global `ResourcesPath`:
 
 ```csharp
 string message = localizer["notes.notification.created", note.Title];
 ```
 
-Feature resource JSON files are embedded automatically; do not add `.resx`, client
-UI strings, or HTML markup with unescaped user input. Catalog edits require a
+The .NET SDK embeds `.resx` automatically and publishes translated satellite
+assemblies. Keep client UI strings separate, and do not put HTML markup with
+unescaped user input in resources. Resource edits require a
 rebuild. Add tests ensuring locale keys/placeholders match and fallback works.
 `Common/Localization` must never reference concrete feature types. For background
 work without a request, establish the recipient's culture explicitly; the request

@@ -7,7 +7,7 @@ namespace AspNetVue.Server.Features.Identity.Register;
 
 internal sealed class UserRegisteredDomainEventHandler(
     IEmailSender emailSender,
-    IStringLocalizer<UserRegisteredDomainEventHandler> localizer)
+    IStringLocalizer<IdentityResources> localizer)
     : IDomainEventHandler<UserRegisteredDomainEvent>
 {
     public async Task Handle(UserRegisteredDomainEvent domainEvent, CancellationToken cancellationToken)

@@ -18,10 +18,10 @@ public sealed class UserRegisteredDomainEventHandlerTests
         using var scope = new CultureScope(culture);
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddJsonLocalization();
+        services.AddServerLocalization();
         using ServiceProvider provider = services.BuildServiceProvider();
-        IStringLocalizer<UserRegisteredDomainEventHandler> localizer =
-            provider.GetRequiredService<IStringLocalizer<UserRegisteredDomainEventHandler>>();
+        IStringLocalizer<IdentityResources> localizer =
+            provider.GetRequiredService<IStringLocalizer<IdentityResources>>();
         IEmailSender emailSender = Substitute.For<IEmailSender>();
         var handler = new UserRegisteredDomainEventHandler(emailSender, localizer);
         var domainEvent = new UserRegisteredDomainEvent(Guid.NewGuid(), "recipient@example.com");

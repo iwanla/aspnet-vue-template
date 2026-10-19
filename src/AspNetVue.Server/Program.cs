@@ -17,7 +17,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((context, loggerConfig) => loggerConfig.ReadFrom.Configuration(context.Configuration));
 
 builder.Services.AddOpenApiWithAuth();
-builder.Services.AddJsonLocalization();
+builder.Services.AddServerLocalization();
 
 builder.Services
     .AddApplication()

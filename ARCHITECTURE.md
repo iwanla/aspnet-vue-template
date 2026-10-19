@@ -289,32 +289,34 @@ composition time, rather than embedding provider-specific behavior into endpoint
 
 ## Server localization
 
-**Location:** `Common/Localization/`; feature-owned `Resources/{culture}.json` files.
+**Location:** `Common/Localization/`; feature-owned `{Domain}Resources.resx` files.
 
-The server uses JSON exclusively for localized, server-generated text such as email,
+The server uses built-in .NET RESX localization for server-generated text such as email,
 PDFs, and notifications. UI translations remain client-owned; resource files are not
 shared merely because their text is similar. Existing API error codes/descriptions
 are not translated by this infrastructure.
 
-`AddJsonLocalization()` installs the singleton JSON factory and configures request
+`AddServerLocalization()` registers `AddLocalization()` and configures request
 culture selection using only `Accept-Language`. English (`en`) is the default and
 Indonesian (`id`) is also supported. Regional variants negotiate their supported
 parent; unsupported languages fall back to English. `Program.cs` installs request
 localization before request consumers. No user locale/database lookup is involved.
 
-The factory resolves the nearest resource-owning namespace for `IStringLocalizer<T>`
-using assembly metadata, not feature references. JSON is embedded in the server
-assembly, so it ships with build/publish output without exposing resource files as
-static assets. There is no file watcher or hot reload; edits require a rebuild.
+Inject `IStringLocalizer<IdentityResources>` (or another feature-owned marker), with
+the marker and matching `.resx` files side by side in the feature namespace. There
+is no namespace-parent discovery or custom factory. The neutral file contains
+English; `.id.resx` contains Indonesian. SDK defaults embed neutral resources in
+the main assembly and translations in satellite assemblies, included in build and
+publish output. Do not configure `ResourcesPath` for this colocated layout.
 
-Catalogs are immutable and loaded once per assembly/resource owner/culture through
-thread-safe lazy caching. Lookup reads `CurrentUICulture` at call time and follows
-its parents, then the configured default culture and its parents. Default fallback
-and missing keys log warnings. A completely missing key returns its name with
-`ResourceNotFound = true`; successful fallback is not reported as missing.
-Formatting uses `CurrentCulture` and `{0}`-style placeholders. `GetAllStrings(false)`
-enumerates only the current UI culture; `true` merges the full fallback chain with
-the closest culture taking precedence. Invalid JSON catalogs fail explicitly.
+The built-in resource manager handles caching and culture-parent fallback, ending
+at the neutral English resources. This fallback is independent of the configured
+request default culture. Lookup uses `CurrentUICulture`; formatting uses
+`CurrentCulture` and `{0}`-style placeholders. Missing keys return their names with
+`ResourceNotFound = true`; successful fallback is not missing. Custom warning logs
+are no longer provided. `GetAllStrings(true)` merges parents and neutral resources;
+`false` excludes parents and can throw if the exact culture has no resource set.
+Resource edits require a rebuild. Keep keys and placeholders aligned across locales.
 
 ## Client layers and hosting boundary
 
